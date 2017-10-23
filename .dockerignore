@@ -1,0 +1,7 @@
+.idea
+.dockerignore
+.gitignore
+Dockerfile
+node_modules
+README.md
+gulpfile.*
