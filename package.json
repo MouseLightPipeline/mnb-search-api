@@ -8,8 +8,8 @@
   "license": "Janelia",
   "dockerRepository": "mouselightdatabrowser",
   "scripts": {
-    "start": "node --max-old-space-size=8192 --optimize-for-size src/transformApp.js",
-    "dev": "DEBUG=ndb:* node --trace-warnings --max-old-space-size=8192 --optimize-for-size $NODE_DEBUG_OPTION src/transformApp.js",
+    "start": "node --max-old-space-size=4096 --optimize-for-size src/transformApp.js",
+    "dev": "DEBUG=ndb:* node --trace-warnings --max-old-space-size=4096 --optimize-for-size $NODE_DEBUG_OPTION src/transformApp.js",
     "docker-build": "gulp docker-build",
     "release": "gulp release"
   },

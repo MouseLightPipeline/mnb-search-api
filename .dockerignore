@@ -5,3 +5,4 @@ Dockerfile
 node_modules
 README.md
 gulpfile.*
+sessions

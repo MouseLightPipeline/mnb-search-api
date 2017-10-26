@@ -1,4 +1,5 @@
 import {PersistentStorageManager} from "../models/databaseConnector";
+import {ServiceOptions} from "../options/serviceOptions";
 
 const debug = require("debug")("ndb:search:raw-query");
 
@@ -6,7 +7,21 @@ const compiledMap = new Map<string, any>();
 
 let cacheReady = false;
 
-export async function loadTracingCache() {
+const maxDelay = ServiceOptions.envName === "development" ? 10 : 600;
+
+export async function loadTracingCache(performDelay = true) {
+    if (performDelay) {
+        const delay = Math.random() * maxDelay;
+
+        debug(`delaying ${delay.toFixed(0)} seconds before initiating cache load`);
+
+        setTimeout(async () => {
+            await loadTracingCache(false)
+        }, delay * 1000);
+
+        return;
+    }
+
     debug("loading cache");
 
     const loaded = await PersistentStorageManager.Instance().Tracings.findAll({
@@ -36,7 +51,6 @@ export async function loadTracingCache() {
     cacheReady = true;
 
     debug("tracing cache loaded");
-    console.log("tracing cache loaded");
 }
 
 export async function tracingQueryMiddleware(req, res) {
