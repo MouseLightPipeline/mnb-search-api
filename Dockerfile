@@ -18,4 +18,4 @@ RUN tsc
 
 CMD ["./start.sh"]
 
-EXPOSE  9661
+EXPOSE  9681

@@ -34,6 +34,9 @@ export class PersistentStorageManager {
 
     private _neuronCache = new Map<string, INeuron>();
 
+    // The area and all subareas, so that searching the parent is same as searching in all the children.
+    private _comprehensiveBrainAreaLookup = new Map<string, string[]>();
+
     public get SearchConnection() {
         return this.searchDatabase.connection;
     }
@@ -66,8 +69,16 @@ export class PersistentStorageManager {
         return this.searchDatabase.models.NeuronBrainAreaMap;
     }
 
+    public ComprehensiveBrainAreas(id: string): string[] {
+        return this._comprehensiveBrainAreaLookup.get(id);
+    }
+
     public Neuron(id: string) {
         return this._neuronCache.get(id);
+    }
+
+    public get NeuronCount() {
+        return this._neuronCache.size;
     }
 
     public async logQuery(queryObject: any, querySql: any, errors: any, duration: number) {
@@ -95,7 +106,12 @@ export class PersistentStorageManager {
     public async initialize() {
         await authenticate(this.searchDatabase, "search");
 
-        const neurons = await this.Neurons.findAll({include: [this.BrainAreas, {model: this.Tracings, include: [this.TracingStructures]}]});
+        const neurons = await this.Neurons.findAll({
+            include: [this.BrainAreas, {
+                model: this.Tracings,
+                include: [this.TracingStructures]
+            }]
+        });
 
         await Promise.all(neurons.map(async (n) => {
             const obj = n.toJSON();
@@ -104,7 +120,7 @@ export class PersistentStorageManager {
             obj.brainArea = obj.BrainArea;
             obj.BrainArea = undefined;
 
-            await Promise.all(obj.tracings.map(async(t)=> {
+            await Promise.all(obj.tracings.map(async (t) => {
                 t.tracingStructure = t.TracingStructure;
 
                 const map = await this.searchDatabase.models.TracingSomaMap.findOne({where: {tracingId: t.id}});
@@ -117,6 +133,16 @@ export class PersistentStorageManager {
             }));
 
             this._neuronCache.set(obj.id, obj);
+        }));
+
+        const brainAreas = await this.BrainAreas.findAll({});
+
+        await Promise.all(brainAreas.map(async (b) => {
+            const result = await this.BrainAreas.findAll({
+                attributes: ["id", "structureIdPath"],
+                where: {structureIdPath: {$like: b.structureIdPath + "%"}}
+            });
+            this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
         }));
 
         await loadTracingCache();

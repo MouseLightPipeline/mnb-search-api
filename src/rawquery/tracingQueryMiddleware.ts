@@ -36,6 +36,7 @@ export async function loadTracingCache() {
     cacheReady = true;
 
     debug("tracing cache loaded");
+    console.log("tracing cache loaded");
 }
 
 export async function tracingQueryMiddleware(req, res) {
