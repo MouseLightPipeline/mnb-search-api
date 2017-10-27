@@ -64,8 +64,9 @@ const resolvers = {
         systemMessage(): String {
             return systemMessage;
         }
-    },
+    }/*,
     Mutation: {
+
         requestExport(_, args: IRequestExportArguments, context: IGraphQLServerContext): Promise<IRequestExportOutput[]> {
             return context.requestExport(args.tracingIds, args.format);
         },
@@ -80,7 +81,7 @@ const resolvers = {
 
             return true;
         }
-    },
+    },*/
 };
 
 let systemMessage: String = "";

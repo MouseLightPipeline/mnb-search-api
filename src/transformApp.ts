@@ -80,7 +80,9 @@ app.use("/tracings", tracingQueryMiddleware);
 
 app.use(ServiceOptions.serverOptions.graphQlEndpoint, /*passport.authenticate('digest', {session: false}),*/ graphQLMiddleware());
 
-app.use(["/", ServiceOptions.serverOptions.graphiQlEndpoint], /*passport.authenticate('digest', {session: false}),*/ graphiQLMiddleware(ServiceOptions.serverOptions));
+if (process.env.NODE_ENV !== "production") {
+    app.use(["/", ServiceOptions.serverOptions.graphiQlEndpoint], /*passport.authenticate('digest', {session: false}),*/ graphiQLMiddleware(ServiceOptions.serverOptions));
+}
 
 const server = createServer(app);
 

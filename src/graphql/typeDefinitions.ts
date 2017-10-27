@@ -140,16 +140,9 @@ type Query {
     systemMessage: String
 }
 
-type Mutation {   
-   requestExport(tracingIds: [String!], format: Int): [RequestExportOutput]
-   
-   setSystemMessage(message: String): Boolean
-   clearSystemMessage: Boolean
-}
 
 schema {
   query: Query
-  mutation: Mutation
 }`;
 
 export default typeDefinitions;
