@@ -1,6 +1,6 @@
 {
   "name": "search-api",
-  "version": "1.0.65",
+  "version": "1.0.6",
   "private": true,
   "main": "src/transformApp.js",
   "repository": "https://github.com/MouseLightPipeline/search-api.git",
