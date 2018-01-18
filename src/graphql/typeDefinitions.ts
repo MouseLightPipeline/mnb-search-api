@@ -115,6 +115,7 @@ input InputPosition {
 }
 
 input FilterInput {
+    tracingIdOrDoi: String
     brainAreaIds: [String!]
     arbCenter: InputPosition
     arbSize: Float
