@@ -1,4 +1,4 @@
-import {IGraphQLServerContext, IQueryDataPage, IRequestExportOutput} from "./serverContext";
+import {IGraphQLServerContext, IQueryDataPage} from "./serverContext";
 
 const debug = require("debug")("ndb:search:resolvers");
 
@@ -20,6 +20,8 @@ interface IQueryDataArguments {
 }
 
 export interface IFilterInput {
+    tracingIdsOrDOIs: string[];
+    tracingIdsOrDOIsExactMatch: boolean;
     tracingStructureIds: string[];
     nodeStructureIds: string[];
     operatorId: string;

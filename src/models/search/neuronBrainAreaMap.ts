@@ -3,6 +3,8 @@ export interface INeuronBrainMap {
     neuronId: string;
     tracingId: string;
     brainAreaId: string;
+    neuronIdString: string;
+    neuronDOI: string;
     nodeCount: number;
     somaCount: number;
     pathCount: number;
@@ -18,6 +20,8 @@ export function sequelizeImport(sequelize, DataTypes) {
             primaryKey: true,
             type: DataTypes.UUID
         },
+        neuronIdString: DataTypes.TEXT,
+        neuronDOI: DataTypes.TEXT,
         somaX: DataTypes.DOUBLE,
         somaY: DataTypes.DOUBLE,
         somaZ: DataTypes.DOUBLE,

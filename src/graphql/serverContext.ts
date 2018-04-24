@@ -113,6 +113,47 @@ export class GraphQLServerContext implements IGraphQLServerContext {
             };
         }
 
+        // Currently this blows away any brain area where clauses.  The client should only be sending a list of brain
+        // areas or ids (or neither if a custom region filter).  However, if that changes and somehow both can be in the
+        // same filter, this would have to be changes to merge the where.
+        if (filter.tracingIdsOrDOIs.length > 0) {
+            let where = {};
+
+            if (filter.tracingIdsOrDOIsExactMatch) {
+                where = {
+                    $or: [
+                        {
+                            neuronIdString: {
+                                $in: filter.tracingIdsOrDOIs
+                            }
+                        },
+                        {
+                            neuronDOI: {
+                                $in: filter.tracingIdsOrDOIs
+                            }
+                        }
+                    ]
+                };
+            } else {
+                where = {
+                    $or: [
+                        {
+                            neuronIdString: {
+                                $iLike: `%${filter.tracingIdsOrDOIs[0]}%`
+                            }
+                        },
+                        {
+                            neuronDOI: {
+                                $iLike: `%${filter.tracingIdsOrDOIs[0]}%`
+                            }
+                        }
+                    ]
+                };
+            }
+
+            query.where = where;
+        }
+
         let opCode = null;
         let amount = 0;
 
@@ -170,6 +211,7 @@ export class GraphQLServerContext implements IGraphQLServerContext {
     }
 
     private async performNeuronsFilterQuery(filters: IFilterInput[]) {
+        console.log(filters[0]);
         const start = Date.now();
 
         const queries = filters.map((filter) => {
