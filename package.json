@@ -1,6 +1,6 @@
 {
   "name": "search-api",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "main": "src/transformApp.js",
   "repository": "https://github.com/MouseLightPipeline/search-api.git",
@@ -8,8 +8,8 @@
   "license": "Janelia",
   "dockerRepository": "mouselightdatabrowser",
   "scripts": {
-    "start": "DEBUG=ndb:* node --max-old-space-size=4096 --optimize-for-size src/transformApp.js",
-    "dev": "DEBUG=ndb:* node --trace-warnings --max-old-space-size=4096 --optimize-for-size $NODE_DEBUG_OPTION src/transformApp.js",
+    "start": "DEBUG=ndb:* node --max-old-space-size=8192 --optimize-for-size src/transformApp.js",
+    "dev": "DEBUG=ndb:* node --trace-warnings --max-old-space-size=8192 --optimize-for-size $NODE_DEBUG_OPTION src/transformApp.js",
     "docker-build": "gulp docker-build",
     "release": "gulp release"
   },

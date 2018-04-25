@@ -7,7 +7,9 @@ const compiledMap = new Map<string, any>();
 
 let cacheReady = false;
 
-const maxDelay = ServiceOptions.envName === "development" ? 10 : 600;
+const maxDelay = ServiceOptions.envName === "development" ? 10 : 300;
+
+const loadLimit = 50;
 
 export async function loadTracingCache(performDelay = true) {
     if (performDelay) {
@@ -24,6 +26,11 @@ export async function loadTracingCache(performDelay = true) {
 
     debug("loading cache");
 
+    const totalCount = await PersistentStorageManager.Instance().Tracings.count();
+
+    loadCacheSubset(0, totalCount).then();
+
+    /*
     const loaded = await PersistentStorageManager.Instance().Tracings.findAll({
         include: [{model: PersistentStorageManager.Instance().Nodes, as: "nodes"}]
     });
@@ -51,6 +58,46 @@ export async function loadTracingCache(performDelay = true) {
     cacheReady = true;
 
     debug("tracing cache loaded");
+
+    */
+}
+
+async function loadCacheSubset(offset: number, totalCount: number) {
+    if (offset > totalCount) {
+        cacheReady = true;
+        debug("tracing cache loaded");
+        return;
+    }
+
+    const loaded = await PersistentStorageManager.Instance().Tracings.findAll({
+        include: [{model: PersistentStorageManager.Instance().Nodes, as: "nodes"}],
+        limit: loadLimit,
+        offset
+    });
+
+
+    debug(`compiling tracings ${offset} through ${offset + loadLimit - 1}`);
+
+    loaded.map(t => {
+        const obj = Object.assign({}, {id: t.id, nodes: []});
+        obj.nodes = t.nodes.map(n => Object.assign({}, {
+            id: n.id,
+            x: n.x,
+            y: n.y,
+            z: n.z,
+            radius: n.radius,
+            parentNumber: n.parentNumber,
+            sampleNumber: n.sampleNumber,
+            brainAreaId: n.brainAreaId,
+            structureIdentifierId: n.structureIdentifierId
+        }));
+
+        compiledMap.set(obj.id, obj);
+    });
+
+    setTimeout(() => {
+        loadCacheSubset(offset + loadLimit, totalCount).then();
+    }, 5000);
 }
 
 export async function tracingQueryMiddleware(req, res) {
