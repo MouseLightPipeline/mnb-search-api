@@ -9,7 +9,7 @@ let cacheReady = false;
 
 const maxDelay = ServiceOptions.envName === "development" ? 10 : 300;
 
-const loadLimit = 50;
+const loadLimit = ServiceOptions.envName === "development" ? 500 : 50;
 
 export async function loadTracingCache(performDelay = true) {
     if (performDelay) {

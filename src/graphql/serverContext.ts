@@ -211,7 +211,6 @@ export class GraphQLServerContext implements IGraphQLServerContext {
     }
 
     private async performNeuronsFilterQuery(filters: IFilterInput[]) {
-        console.log(filters[0]);
         const start = Date.now();
 
         const queries = filters.map((filter) => {
