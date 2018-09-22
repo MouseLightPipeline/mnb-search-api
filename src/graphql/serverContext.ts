@@ -8,7 +8,6 @@ const debug = require("debug")("ndb:search:context");
 
 import {PersistentStorageManager} from "../models/databaseConnector";
 import {IFilterInput} from "./serverResolvers";
-import {isNullOrUndefined} from "util";
 import {operatorIdValueMap} from "../models/queryOperator";
 import {IBrainArea} from "../models/search/brainArea";
 import {ExportFormat, ITracing} from "../models/search/tracing";
@@ -355,21 +354,25 @@ export class GraphQLServerContext implements IGraphQLServerContext {
     }
 
     private async logQueries(filters: IFilterInput[], queries: FindOptions[], duration) {
-        // Fixes json -> string for model circular reference when logging.
-        const queryLog = queries ? queries.map(q => {
-            let ql = {where: q.where};
-            if (q.include) {
-                const include: any = q.include[0];
+        try {
+            // Fixes json -> string for model circular reference when logging.
+            const queryLog = queries ? queries.map(q => {
+                let ql = {where: q.where};
+                if (q.include) {
+                    const include: any = q.include[0];
 
-                ql["include"] = [{
-                    model: "Tracings",
-                    where: include.where
-                }];
-            }
-            return ql;
-        }) : [{}];
+                    ql["include"] = [{
+                        model: "Tracings",
+                        where: include.where
+                    }];
+                }
+                return ql;
+            }) : [{}];
 
-        await this._storageManager.logQuery(filters, [queryLog], "", duration);
+            await this._storageManager.logQuery(filters, [queryLog], "", duration);
+        } catch (err) {
+            console.log(err);
+        }
     }
 }
 

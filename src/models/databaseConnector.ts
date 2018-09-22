@@ -84,7 +84,7 @@ export class PersistentStorageManager {
     public async logQuery(queryObject: any, querySql: any, errors: any, duration: number) {
         try {
             if (this.influxDatabase) {
-                this.influxDatabase.writePoints([
+                await this.influxDatabase.writePoints([
                     {
                         measurement: "query_response_times",
                         tags: {user: "none"},
@@ -95,7 +95,7 @@ export class PersistentStorageManager {
                             duration
                         },
                     }
-                ]).then();
+                ]);
             }
         } catch (err) {
             debug("loq query failed.");

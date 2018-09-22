@@ -68,7 +68,7 @@ function loadConfiguration(): IServiceOptions {
 
     c.ontologyPath = process.env.ONTOLOGY_PATH || c.ontologyPath;
 
-    c.release =  process.env.NEURON_EXPLORER_RELEASE || c.release;
+    c.release =  process.env.NEURON_BROWSER_RELEASE || c.release;
 
     c.version = readSystemVersion();
 
