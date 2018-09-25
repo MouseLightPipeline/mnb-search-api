@@ -7,9 +7,9 @@ const compiledMap = new Map<string, any>();
 
 let cacheReady = false;
 
-const maxDelay = ServiceOptions.envName === "development" ? 10 : 300;
+const maxDelay = 10;
 
-const loadLimit = ServiceOptions.envName === "development" ? 500 : 50;
+const loadLimit = ServiceOptions.envName === "development" ? 500 : 100;
 
 export async function loadTracingCache(performDelay = true) {
     if (performDelay) {
