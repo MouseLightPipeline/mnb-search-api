@@ -103,11 +103,6 @@ type Error {
     name: String
 }
 
-type RequestExportOutput {
-    filename: String
-    contents: String
-}
-
 input InputPosition {
     x: Float
     y: Float
@@ -141,7 +136,6 @@ type Query {
 
     systemMessage: String
 }
-
 
 schema {
   query: Query

@@ -31,17 +31,16 @@ export function sequelizeImport(sequelize, DataTypes) {
         branchCount: DataTypes.INTEGER,
         endCount: DataTypes.INTEGER
     }, {
-        classMethods: {
-            associate: models => {
-                NeuronBrainAreaMap.belongsTo(models.Tracing, {foreignKey: "tracingId"});
-                NeuronBrainAreaMap.belongsTo(models.BrainArea, {foreignKey: "brainAreaId"});
-                NeuronBrainAreaMap.belongsTo(models.Neuron, {foreignKey: "neuronId"});
-                NeuronBrainAreaMap.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId"});
-            }
-        },
         timestamps: false,
         tableName: TableName
     });
+
+    NeuronBrainAreaMap.associate = models => {
+        NeuronBrainAreaMap.belongsTo(models.Tracing, {foreignKey: "tracingId"});
+        NeuronBrainAreaMap.belongsTo(models.BrainArea, {foreignKey: "brainAreaId"});
+        NeuronBrainAreaMap.belongsTo(models.Neuron, {foreignKey: "neuronId"});
+        NeuronBrainAreaMap.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId"});
+    };
 
     return NeuronBrainAreaMap;
 }

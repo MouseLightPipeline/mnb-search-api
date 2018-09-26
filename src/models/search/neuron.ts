@@ -53,16 +53,14 @@ export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any
             type: DataTypes.TEXT
         }
     }, {
-        classMethods: {
-            associate: (models: any) => {
-                Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}});
-                Neuron.hasMany(models.NeuronBrainAreaMap, {foreignKey: "neuronId"});
-                Neuron.hasMany(models.Tracing, {foreignKey: "neuronId"});
-            }
-        },
-        timestamps: false,
+        timestamps: true
     });
 
+    Neuron.associate = (models: any) => {
+        Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}});
+        Neuron.hasMany(models.NeuronBrainAreaMap, {foreignKey: "neuronId"});
+        Neuron.hasMany(models.Tracing, {foreignKey: "neuronId"});
+    };
 
     return Neuron;
 }

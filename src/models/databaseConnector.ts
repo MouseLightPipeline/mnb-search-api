@@ -1,14 +1,16 @@
-import {INeuron} from "./search/neuron";
-
+import * as Sequelize from "sequelize";
 const Influx = require("influx");
-const Sequelize = require("sequelize");
 
-const debug = require("debug")("ndb:search:database-connector");
+const debug = require("debug")("mdb:search:database-connector");
 
-import {DatabaseOptions} from "../options/serviceOptions"
-
+import {INeuron} from "./search/neuron";
+import {SequelizeOptions} from "../options/databaseOptions"
+import {MetricsOptions} from "../options/databaseOptions"
 import {loadModels} from "./modelLoader";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
+
+
+const Op = Sequelize.Op;
 
 export interface ISearchDatabaseModels {
     BrainArea?: any
@@ -140,7 +142,7 @@ export class PersistentStorageManager {
         await Promise.all(brainAreas.map(async (b) => {
             const result = await this.BrainAreas.findAll({
                 attributes: ["id", "structureIdPath"],
-                where: {structureIdPath: {$like: b.structureIdPath + "%"}}
+                where: {structureIdPath: {[Op.like]: b.structureIdPath + "%"}}
             });
             this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
         }));
@@ -148,7 +150,7 @@ export class PersistentStorageManager {
         await loadTracingCache();
     }
 
-    private searchDatabase: ISequelizeDatabase<ISearchDatabaseModels> = createConnection("search", {});
+    private searchDatabase: ISequelizeDatabase<ISearchDatabaseModels> = createConnection({});
     private influxDatabase = establishInfluxConnection();
 }
 
@@ -172,30 +174,26 @@ async function authenticate(database, name) {
     }
 }
 
-function createConnection<T>(name: string, models: T) {
-    let databaseConfig = DatabaseOptions[name];
-
+function createConnection<T>(models: T) {
     let db: ISequelizeDatabase<T> = {
         connection: null,
         models: models,
         isConnected: false
     };
 
-    debug(`initiating connection: ${databaseConfig.host}:${databaseConfig.port}#${databaseConfig.database}`);
+    debug(`initiating connection: ${SequelizeOptions.host}:${SequelizeOptions.port}#${SequelizeOptions.database}`);
 
-    db.connection = new Sequelize(databaseConfig.database, databaseConfig.username, databaseConfig.password, databaseConfig);
+    db.connection = new Sequelize(SequelizeOptions.database, SequelizeOptions.username, SequelizeOptions.password, SequelizeOptions);
 
-    return loadModels(db, __dirname + "/" + name);
+    return loadModels(db, __dirname + "/" + "search");
 }
 
 function establishInfluxConnection() {
-    if (DatabaseOptions["metrics"]) {
-        const databaseConfig = DatabaseOptions["metrics"];
-
+    if (MetricsOptions) {
         return new Influx.InfluxDB({
-            host: databaseConfig.host,
-            port: databaseConfig.port,
-            database: databaseConfig.database,
+            host: MetricsOptions.host,
+            port: MetricsOptions.port,
+            database: MetricsOptions.database,
             schema: [
                 {
                     measurement: "query_response_times",

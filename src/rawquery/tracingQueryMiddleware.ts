@@ -1,19 +1,15 @@
 import {PersistentStorageManager} from "../models/databaseConnector";
 import {ServiceOptions} from "../options/serviceOptions";
 
-const debug = require("debug")("ndb:search:raw-query");
+const debug = require("debug")("mdb:search:raw-query");
 
 const compiledMap = new Map<string, any>();
 
 let cacheReady = false;
 
-const maxDelay = 10;
-
-const loadLimit = ServiceOptions.envName === "development" ? 500 : 100;
-
 export async function loadTracingCache(performDelay = true) {
     if (performDelay) {
-        const delay = Math.random() * maxDelay;
+        const delay = Math.random() * ServiceOptions.tracingLoadMaxDelay;
 
         debug(`delaying ${delay.toFixed(0)} seconds before initiating cache load`);
 
@@ -28,41 +24,10 @@ export async function loadTracingCache(performDelay = true) {
 
     const totalCount = await PersistentStorageManager.Instance().Tracings.count();
 
-    loadCacheSubset(0, totalCount).then();
-
-    /*
-    const loaded = await PersistentStorageManager.Instance().Tracings.findAll({
-        include: [{model: PersistentStorageManager.Instance().Nodes, as: "nodes"}]
-    });
-
-
-    debug("compiling tracings");
-
-    loaded.map(t => {
-        const obj = Object.assign({}, {id: t.id, nodes: []});
-        obj.nodes = t.nodes.map(n => Object.assign({}, {
-            id: n.id,
-            x: n.x,
-            y: n.y,
-            z: n.z,
-            radius: n.radius,
-            parentNumber: n.parentNumber,
-            sampleNumber: n.sampleNumber,
-            brainAreaId: n.brainAreaId,
-            structureIdentifierId: n.structureIdentifierId
-        }));
-
-        compiledMap.set(obj.id, obj);
-    });
-
-    cacheReady = true;
-
-    debug("tracing cache loaded");
-
-    */
+    loadCacheSubset(0, ServiceOptions.tracingLoadLimit, totalCount).then();
 }
 
-async function loadCacheSubset(offset: number, totalCount: number) {
+async function loadCacheSubset(offset: number, limit: number, totalCount: number) {
     if (offset > totalCount) {
         cacheReady = true;
         debug("tracing cache loaded");
@@ -71,12 +36,11 @@ async function loadCacheSubset(offset: number, totalCount: number) {
 
     const loaded = await PersistentStorageManager.Instance().Tracings.findAll({
         include: [{model: PersistentStorageManager.Instance().Nodes, as: "nodes"}],
-        limit: loadLimit,
+        limit,
         offset
     });
 
-
-    debug(`compiling tracings ${offset} through ${offset + loadLimit - 1}`);
+    debug(`compiling tracings ${offset} through ${offset + limit - 1}`);
 
     loaded.map(t => {
         const obj = Object.assign({}, {id: t.id, nodes: []});
@@ -96,8 +60,8 @@ async function loadCacheSubset(offset: number, totalCount: number) {
     });
 
     setTimeout(() => {
-        loadCacheSubset(offset + loadLimit, totalCount).then();
-    }, 5000);
+        loadCacheSubset(offset + limit, limit, totalCount).then();
+    }, 2500);
 }
 
 export async function tracingQueryMiddleware(req, res) {
@@ -139,8 +103,4 @@ export async function tracingQueryMiddleware(req, res) {
             }
         });
     }
-}
-
-function convertTiming(duration: [number, number]) {
-    return duration[0] + duration[1] / 1000000000
 }

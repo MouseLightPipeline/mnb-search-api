@@ -8,14 +8,12 @@ RUN cd /tmp/hdf5-1.10.0-patch1; make install
 
 WORKDIR /app
 
-RUN yarn global add typescript node-gyp
+COPY dist .
 
-COPY . .
+RUN yarn global add sequelize-cli node-gyp
 
 RUN yarn install
 
-RUN tsc
-
-CMD ["./start.sh"]
+CMD ["./docker-entry.sh"]
 
 EXPOSE  9681

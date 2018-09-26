@@ -4,13 +4,8 @@
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
-    "skipLibCheck": true,
-    "allowJs": true
+    "skipLibCheck": true
   },
-  "include": [
-    "src/**/*.ts",
-    "gulpfile.ts"
-  ],
   "exclude": [
     "node_modules"
   ]

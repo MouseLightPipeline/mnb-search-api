@@ -13,6 +13,7 @@ export enum StructureIdentifiers {
     forkPoint = 5,
     endPoint = 6
 }
+
 export const TableName = "StructureIdentifier";
 
 export function sequelizeImport(sequelize, DataTypes) {
@@ -25,13 +26,12 @@ export function sequelizeImport(sequelize, DataTypes) {
         name: DataTypes.TEXT,
         value: DataTypes.INTEGER
     }, {
-        classMethods: {
-            associate: models => {
-                // StructureIdentifier.hasMany(models.SwcTracingNode, {foreignKey: "structureIdentifierId", as: "Nodes"});
-            }
-        },
         timestamps: false,
     });
+
+    StructureIdentifier.associate = models => {
+        // StructureIdentifier.hasMany(models.SwcTracingNode, {foreignKey: "structureIdentifierId", as: "Nodes"});
+    };
 
     const map = new Map<string, number>();
     const reverseMap = new Map<number, String>();

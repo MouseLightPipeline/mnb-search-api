@@ -42,13 +42,12 @@ export function sequelizeImport(sequelize, DataTypes) {
         geometryColor: DataTypes.TEXT,
         geometryEnable: DataTypes.BOOLEAN,
     }, {
-        classMethods: {
-            associate: (models: any) => {
-                BrainArea.hasMany(models.Neuron, {foreignKey: "brainAreaId", as: "neurons"});
-            }
-        },
         timestamps: false,
     });
+
+    BrainArea.associate = (models: any) => {
+        BrainArea.hasMany(models.Neuron, {foreignKey: "brainAreaId", as: "neurons"});
+    };
 
     return BrainArea;
 }

@@ -8,15 +8,14 @@ export function sequelizeImport(sequelize, DataTypes) {
             defaultValue: DataTypes.UUIDV4
         },
     }, {
-        classMethods: {
-            associate: models => {
-                TracingSomaMap.belongsTo(models.Tracing, {foreignKey: "tracingId"});
-                TracingSomaMap.belongsTo(models.TracingNode, {foreignKey: "somaId", as: "soma"});
-            }
-        },
         timestamps: false,
         tableName: TableName
     });
+
+    TracingSomaMap.associate = models => {
+        TracingSomaMap.belongsTo(models.Tracing, {foreignKey: "tracingId"});
+        TracingSomaMap.belongsTo(models.TracingNode, {foreignKey: "somaId", as: "soma"});
+    };
 
     return TracingSomaMap;
 }

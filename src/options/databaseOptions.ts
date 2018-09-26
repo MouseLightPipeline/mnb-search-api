@@ -1,57 +1,38 @@
-import {IConnectionOptions} from "ndb-data-models";
-
-export interface IDatabases {
-    search: IDatabaseEnv;
-    metrics: IDatabaseEnv;
-}
-
-export interface IDatabaseEnv {
-    development: IConnectionOptions;
-    azure?: IConnectionOptions;
-    production: IConnectionOptions;
-}
-
-export const Databases: IDatabases = {
+export const Databases = {
     search: {
-        development: {
-            database: "search_development",
-            username: "postgres",
-            host: "search-db",
-            port: 5432,
-            dialect: "postgres",
-            logging: null
-        },
-        azure: {
-            database: "jrcndb",
-            username: "JaNEadmin",
-            password: "",
-            host: "jrcndb.database.windows.net",
-            dialect: "mssql",
-            dialectOptions: {
-                encrypt: true,
-                requestTimeout: 60000
-            },
-            logging: null
-        },
-        production: {
-            database: "search_production",
-            username: "postgres",
-            host: "search-db",
-            port: 5432,
-            dialect: "postgres",
-            logging: null
-        }
+        database: "search_production",
+        username: "postgres",
+        host: "search-db",
+        user: "postgres",
+        password: "pgsecret",
+        port: 5432,
+        dialect: "postgres",
+        logging: null,
+        operatorsAliases: false,
     },
     metrics: {
-        development: {
-            host: "localhost",
-            port: 8086,
-            database: "query_metrics_db"
-        },
-        production: {
-            host: "metrics-db",
-            port: 8086,
-            database: "query_metrics_db"
-        }
+        host: "metrics-db",
+        port: 8086,
+        database: "query_metrics_db"
     }
 };
+
+function loadDatabaseOptions() {
+    const options = Object.assign({}, Databases);
+
+    options.search.host = process.env.SEARCH_DB_HOST || options.search.host;
+    options.search.port = parseInt(process.env.SEARCH_DB_PORT) || options.search.port;
+    options.search.user = process.env.DATABASE_USER || options.search.user;
+    options.search.password = process.env.DATABASE_PW || "pgsecret";
+
+    options.metrics.host = process.env.METRICS_DB_HOST || options.metrics.host;
+    options.metrics.port = parseInt(process.env.METRICS_DB_PORT) || options.metrics.port;
+
+    return options;
+}
+
+const DatabaseOptions = loadDatabaseOptions();
+
+export const SequelizeOptions = DatabaseOptions.search;
+
+export const MetricsOptions = DatabaseOptions.metrics;

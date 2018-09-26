@@ -32,15 +32,14 @@ export function sequelizeImport(sequelize, DataTypes) {
         z: DataTypes.DOUBLE,
         swcNodeId: DataTypes.UUID
     }, {
-        classMethods: {
-            associate: models => {
-                TracingNode.belongsTo(models.Tracing, {foreignKey: "tracingId"});
-                TracingNode.belongsTo(models.StructureIdentifier, {foreignKey: "structureIdentifierId"});
-                TracingNode.belongsTo(models.BrainArea, {foreignKey: "brainAreaId"});
-            }
-        },
         timestamps: false,
     });
+
+    TracingNode.associate = models => {
+        TracingNode.belongsTo(models.Tracing, {foreignKey: "tracingId"});
+        TracingNode.belongsTo(models.StructureIdentifier, {foreignKey: "structureIdentifierId"});
+        TracingNode.belongsTo(models.BrainArea, {foreignKey: "brainAreaId"});
+    };
 
     return TracingNode;
 }
