@@ -145,7 +145,7 @@ export class GraphQLServerContext {
             amount = filter.amount;
             debug(`found operator ${operator} with opCode ${operator.operator2} for amount ${amount}`);
         } else {
-            opCode = [Op.gt];
+            opCode = Op.gt;
             amount = 0;
             debug(`operator is null, using opCode $gt for amount ${amount}`);
         }
@@ -218,7 +218,6 @@ export class GraphQLServerContext {
                     return distance <= filters[index].arbSize;
                 });
             }
-
 
             return compartments.map(c => {
                 return this._storageManager.Neuron(c.neuronId);

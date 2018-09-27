@@ -36,7 +36,6 @@ function createShellTasks(sourceFile) {
     const moveFiles = `cp ./{package.json,yarn.lock,.sequelizerc,LICENSE,docker-entry.sh,migrate.sh} dist`;
     const moveDirectories = `cp -R migrations dist/`;
 
-
     const contents = fs.readFileSync(sourceFile).toString();
 
     const npmPackage = JSON.parse(contents);

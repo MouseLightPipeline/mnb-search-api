@@ -3,7 +3,7 @@
   "version": "1.4.0",
   "private": true,
   "main": "src/app.js",
-  "repository": "https://github.com/MouseLightPipeline/search-api.git",
+  "repository": "https://github.com/MouseLightPipeline/mnb-search-api.git",
   "author": "Patrick Edson <pedson@leapscientific.com>",
   "license": "SEE LICENSE IN LICENSE",
   "dockerRepository": "mouselightdatabrowser",
