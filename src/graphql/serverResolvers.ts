@@ -1,6 +1,6 @@
 import {GraphQLServerContext, IQueryDataPage} from "./serverContext";
 
-const debug = require("debug")("mdb:search:resolvers");
+const debug = require("debug")("mnb:search-api:resolvers");
 
 import {IQueryOperator, operators} from "../models/queryOperator";
 import {ServiceOptions} from "../options/serviceOptions";

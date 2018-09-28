@@ -2,9 +2,9 @@ import * as _ from "lodash";
 import {FindOptions} from "sequelize";
 import * as Sequelize from "sequelize";
 
-const debug = require("debug")("mdb:search:context");
+const debug = require("debug")("mnb:search-api:context");
 
-import {PersistentStorageManager} from "../models/databaseConnector";
+import {PersistentStorageManager} from "../data-access/persistentStorageManager";
 import {IFilterInput} from "./serverResolvers";
 import {operatorIdValueMap} from "../models/queryOperator";
 import {IBrainArea} from "../models/search/brainArea";
@@ -12,6 +12,7 @@ import {ITracingStructure} from "../models/search/tracingStructure";
 import {IStructureIdentifier} from "../models/search/structureIdentifier";
 import {INeuron} from "../models/search/neuron";
 import {INeuronBrainMap} from "../models/search/neuronBrainAreaMap";
+import {MetricsStorageManager} from "../data-access/metricsStorageManager";
 
 const Op = Sequelize.Op;
 
@@ -31,6 +32,7 @@ export enum FilterComposition {
 
 export class GraphQLServerContext {
     private _storageManager = PersistentStorageManager.Instance();
+    private _metricStorageManager = MetricsStorageManager.Instance();
 
     public async getStructureIdentifiers(): Promise<IStructureIdentifier[]> {
         return this._storageManager.StructureIdentifiers.findAll({});
@@ -258,7 +260,7 @@ export class GraphQLServerContext {
                 return ql;
             }) : [{}];
 
-            await this._storageManager.logQuery(filters, [queryLog], "", duration);
+            await this._metricStorageManager.logQuery(filters, [queryLog], "", duration);
         } catch (err) {
             console.log(err);
         }

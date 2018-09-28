@@ -2,7 +2,7 @@ import {createServer} from "http";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 
-const debug = require("debug")("mdb:search:server");
+const debug = require("debug")("mnb:search-api:server");
 
 import {ServiceOptions} from "./options/serviceOptions";
 

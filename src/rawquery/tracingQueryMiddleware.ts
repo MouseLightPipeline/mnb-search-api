@@ -1,7 +1,7 @@
-import {PersistentStorageManager} from "../models/databaseConnector";
+import {PersistentStorageManager} from "../data-access/persistentStorageManager";
 import {ServiceOptions} from "../options/serviceOptions";
 
-const debug = require("debug")("mdb:search:raw-query");
+const debug = require("debug")("mnb:search-api:raw-query");
 
 const compiledMap = new Map<string, any>();
 

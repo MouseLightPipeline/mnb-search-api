@@ -10,7 +10,7 @@
   "dockerImageName": "search-api",
   "scripts": {
     "start": "node --max-old-space-size=8192 --optimize-for-size src/app.js",
-    "dev": "DEBUG=mdb:* node --trace-warnings --max-old-space-size=8192 --optimize-for-size $NODE_DEBUG_OPTION src/app.js",
+    "dev": "DEBUG=mnb:* node --trace-warnings --max-old-space-size=8192 --optimize-for-size $NODE_DEBUG_OPTION src/app.js",
     "docker-build": "gulp docker-build",
     "release": "gulp release"
   },

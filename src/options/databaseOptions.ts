@@ -13,7 +13,8 @@ export const Databases = {
     metrics: {
         host: "metrics-db",
         port: 8086,
-        database: "query_metrics_db"
+        database: "query_metrics_db",
+        measurement: "query_response_times"
     }
 };
 
@@ -27,6 +28,7 @@ function loadDatabaseOptions() {
 
     options.metrics.host = process.env.METRICS_DB_HOST || options.metrics.host;
     options.metrics.port = parseInt(process.env.METRICS_DB_PORT) || options.metrics.port;
+    options.metrics.database = process.env.METRICS_DB_QUERY_DB || options.metrics.database;
 
     return options;
 }
