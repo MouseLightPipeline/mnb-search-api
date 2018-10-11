@@ -27,6 +27,7 @@ export = {
                 structureIdPath: Sequelize.TEXT,
                 name: Sequelize.TEXT,
                 safeName: Sequelize.TEXT,
+                aliases: Sequelize.TEXT,
                 geometryFile: {
                     type: Sequelize.TEXT,
                     defaultValue: ""

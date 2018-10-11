@@ -11,7 +11,7 @@ gulp.task("default", ["docker-build"]);
 
 gulp.task("build", buildTask);
 
-gulp.task("docker-build", tagTask);
+gulp.task("docker-build", ["build"], tagTask);
 
 gulp.task("docker-push", ["docker-build"], pushTask);
 
@@ -33,7 +33,8 @@ function createShellTasks(sourceFile) {
 
     const compileTypescript = `tsc -p tsconfig.prod.json`;
 
-    const moveFiles = `cp ./{package.json,yarn.lock,.sequelizerc,LICENSE,docker-entry.sh,migrate.sh} dist`;
+    const moveFiles1 = `cp ./{package.json,yarn.lock,LICENSE,docker-entry.sh,migrate.sh} dist`;
+    const moveFiles2 = `cp .sequelizerc.prod dist/.sequelizerc`;
     const moveDirectories = `cp -R migrations dist/`;
 
     const contents = fs.readFileSync(sourceFile).toString();
@@ -68,7 +69,8 @@ function createShellTasks(sourceFile) {
         shell.task([
             cleanCommand,
             compileTypescript,
-            moveFiles,
+            moveFiles1,
+            moveFiles2,
             moveDirectories
         ]),
         shell.task([
