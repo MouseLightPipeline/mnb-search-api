@@ -138,6 +138,10 @@ export = {
                 pathCount: Sequelize.INTEGER,
                 branchCount: Sequelize.INTEGER,
                 endCount: Sequelize.INTEGER,
+                visibility: {
+                    type: Sequelize.INTEGER,
+                    defaultValue: -1
+                },
                 tracingStructureId: {
                     type: Sequelize.UUID,
                     references: {
