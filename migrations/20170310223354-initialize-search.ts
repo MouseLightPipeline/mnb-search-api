@@ -87,6 +87,10 @@ export = {
                 doi: {
                     type: Sequelize.TEXT
                 },
+                visibility: {
+                    type: Sequelize.INTEGER,
+                    defaultValue: -1
+                },
                 brainAreaId: {
                     type: Sequelize.UUID,
                     references: {
@@ -138,10 +142,6 @@ export = {
                 pathCount: Sequelize.INTEGER,
                 branchCount: Sequelize.INTEGER,
                 endCount: Sequelize.INTEGER,
-                visibility: {
-                    type: Sequelize.INTEGER,
-                    defaultValue: -1
-                },
                 tracingStructureId: {
                     type: Sequelize.UUID,
                     references: {
