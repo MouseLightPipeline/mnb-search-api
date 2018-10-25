@@ -2,17 +2,16 @@
   "name": "mnb-search-api",
   "version": "1.4.0",
   "private": true,
-  "main": "src/app.js",
+  "main": "dist/app.js",
   "repository": "https://github.com/MouseLightPipeline/mnb-search-api.git",
   "author": "Patrick Edson <pedson@leapscientific.com>",
   "license": "SEE LICENSE IN LICENSE",
   "dockerRepository": "mouselightdatabrowser",
   "dockerImageName": "search-api",
   "scripts": {
-    "start": "node --max-old-space-size=8192 --optimize-for-size src/app.js",
-    "dev": "DEBUG=mnb:* node --trace-warnings --max-old-space-size=8192 --optimize-for-size $NODE_DEBUG_OPTION src/app.js",
+    "debug": "DEBUG=mnb:* node --trace-warnings --max-old-space-size=8192 --optimize-for-size $NODE_DEBUG_OPTION src/app.js",
     "docker-build": "gulp docker-build",
-    "release": "gulp release"
+    "docker-release": "gulp release"
   },
   "dependencies": {
     "body-parser": "^1.17.2",
