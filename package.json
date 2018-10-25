@@ -23,7 +23,6 @@
     "graphql-tools": "^1.0.0",
     "influx": "^5.0.7",
     "lodash": "^4.17.4",
-    "ndb-data-models": "^0.8.8",
     "pg": "^6.2.3",
     "sanitize-filename": "^1.6.1",
     "sequelize": "^4.39.0",
