@@ -4,9 +4,9 @@ const path = require("path");
 import {ISequelizeDatabase} from "./persistentStorageManager";
 
 export function loadModels<T>(db: ISequelizeDatabase<T>, modelLocation: string) {
-    fs.readdirSync(modelLocation).filter(file => {
+    fs.readdirSync(modelLocation).filter((file: string) => {
         return (file.indexOf(".") !== 0) && (file.slice(-3) === ".js");
-    }).forEach(file => {
+    }).forEach((file: string) => {
         let modelModule = require(path.join(modelLocation, file));
 
         const table = db.connection.import(modelModule.TableName, modelModule.sequelizeImport);

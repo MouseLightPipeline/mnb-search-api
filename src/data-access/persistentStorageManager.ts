@@ -1,41 +1,51 @@
 import * as path from "path";
-import * as Sequelize from "sequelize";
+import * as SequelizeFactory from "sequelize";
+import {Sequelize, Op} from "sequelize";
 
 const debug = require("debug")("mnb:search-api:storage-manager");
 
-import {INeuron} from "../models/search/neuron";
+import {INeuron, INeuronAttributes, INeuronTable} from "../models/search/neuron";
 import {SequelizeOptions} from "../options/databaseOptions"
 import {loadModels} from "./modelLoader";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
 
-const Op = Sequelize.Op;
-
 const reattemptConnectDelay = 10;
 
-export interface ISearchDatabaseModels {
-    BrainArea?: any
-    StructureIdentifier?: any;
-    TracingStructure?: any;
-    Neuron?: any;
-    Tracing?: any;
-    TracingNode?: any;
-    NeuronBrainAreaMap?: any;
-    TracingSomaMap?: any;
+export class SearchTables {
+    public constructor() {
+        this.BrainArea = null;
+        this.Neuron = null;
+        this.NeuronBrainAreaMap = null;
+        this.StructureIdentifier = null;
+        this.Tracing = null;
+        this.TracingNode = null;
+        this.TracingStructure = null;
+        this.TracingSomaMap = null;
+    }
+
+    BrainArea: any;
+    Neuron: INeuronTable;
+    NeuronBrainAreaMap: any;
+    StructureIdentifier: any;
+    Tracing: any;
+    TracingNode: any;
+    TracingStructure: any;
+    TracingSomaMap: any;
 }
 
 export interface ISequelizeDatabase<T> {
-    connection: any;
-    tables: T;
+    connection: Sequelize;
+    tables: SearchTables;
 }
 
 export class PersistentStorageManager {
-    private _searchDatabase: ISequelizeDatabase<ISearchDatabaseModels> = null;
+    private _searchDatabase: ISequelizeDatabase<SearchTables> = null;
 
     public static Instance(): PersistentStorageManager {
         return _manager;
     }
 
-    private _neuronCache = new Map<string, INeuron>();
+    private _neuronCache = new Map<string, INeuronAttributes>();
 
     // The area and all subareas, so that searching the parent is same as searching in all the children.
     private _comprehensiveBrainAreaLookup = new Map<string, string[]>();
@@ -81,7 +91,7 @@ export class PersistentStorageManager {
     }
 
     public async initialize() {
-        const searchDatabase: ISequelizeDatabase<ISearchDatabaseModels> = createConnection({});
+        const searchDatabase: ISequelizeDatabase<SearchTables> = createConnection();
 
         await new Promise(async (resolve) => {
             await this.authenticate(searchDatabase, resolve);
@@ -92,7 +102,7 @@ export class PersistentStorageManager {
         this._searchDatabase = searchDatabase;
     }
 
-    public async authenticate(searchDatabase: ISequelizeDatabase<ISearchDatabaseModels>, resolve) {
+    public async authenticate(searchDatabase: ISequelizeDatabase<SearchTables>, resolve) {
         try {
             await searchDatabase.connection.authenticate();
 
@@ -110,23 +120,27 @@ export class PersistentStorageManager {
         }
     }
 
-    public async prepareSearchContents(searchDatabase: ISequelizeDatabase<ISearchDatabaseModels>) {
-        const neurons = await searchDatabase.tables.Neuron.findAll({
+    public async prepareSearchContents(searchDatabase: ISequelizeDatabase<SearchTables>) {
+        const neurons: INeuron[] = await searchDatabase.tables.Neuron.findAll({
             include: [searchDatabase.tables.BrainArea, {
                 model: searchDatabase.tables.Tracing,
-                include: [searchDatabase.tables.TracingStructure]
+                as: "tracings",
+                include: [{
+                    model: searchDatabase.tables.TracingStructure,
+                    as: "tracingStructure"
+                }]
             }]
         });
 
         await Promise.all(neurons.map(async (n) => {
             const obj = n.toJSON();
-            obj.tracings = obj.Tracings;
-            obj.Tracings = undefined;
-            obj.brainArea = obj.BrainArea;
-            obj.BrainArea = undefined;
+            // obj.tracings = n.Tracings;
+            // obj.Tracings = undefined;
+            // obj.brainArea = n.BrainArea;
+            // obj.BrainArea = undefined;
 
             await Promise.all(obj.tracings.map(async (t) => {
-                t.tracingStructure = t.TracingStructure;
+                // t.tracingStructure = t.TracingStructure;
 
                 const map = await searchDatabase.tables.TracingSomaMap.findOne({where: {tracingId: t.id}});
 
@@ -154,15 +168,15 @@ export class PersistentStorageManager {
     }
 }
 
-function createConnection<T>(tables: T) {
+function createConnection<T>() {
     let db: ISequelizeDatabase<T> = {
         connection: null,
-        tables: tables
+        tables: new SearchTables()
     };
 
     debug(`initiating connection: ${SequelizeOptions.host}:${SequelizeOptions.port}#${SequelizeOptions.database}`);
 
-    db.connection = new Sequelize(SequelizeOptions.database, SequelizeOptions.username, SequelizeOptions.password, SequelizeOptions);
+    db.connection = new SequelizeFactory(SequelizeOptions.database, SequelizeOptions.username, SequelizeOptions.password, SequelizeOptions);
 
     return loadModels(db, path.normalize(path.join(__dirname, "..", "models", "search")));
 }

@@ -1,38 +1,38 @@
 import * as fs from "fs";
 import * as path from "path";
 
-export interface IServerOptions {
-    port: number;
-    graphQlEndpoint: string;
-    graphiQlEndpoint: string;
+export enum ReleaseLevel {
+    Internal = 0,
+    Public
 }
 
 export interface IServiceOptions {
-    serverOptions: IServerOptions;
+    port: number;
+    graphQLEndpoint: string;
     tracingLoadMaxDelay: number;
     tracingLoadLimit: number;
-    release: string;
+    release: ReleaseLevel;
     version: string;
 }
 
 const configuration: IServiceOptions = {
-    serverOptions: {
-        port: 9681,
-        graphQlEndpoint: "/graphql",
-        graphiQlEndpoint: "/graphiql"
-    },
+    port: 5000,
+    graphQLEndpoint: "/graphql",
     tracingLoadMaxDelay: 10,
     tracingLoadLimit: 100,
-    release: "public",
+    release: ReleaseLevel.Public,
     version: ""
 };
 
 function loadConfiguration(): IServiceOptions {
     const options = Object.assign({}, configuration);
 
+    options.port = parseInt(process.env.SEARCH_API_PORT) || options.port;
+    options.graphQLEndpoint = process.env.SEARCH_API_ENDPOINT || process.env.CORE_SERVICES_ENDPOINT || options.graphQLEndpoint;
+
     options.tracingLoadMaxDelay = parseInt(process.env.NEURON_BROWSER_LOAD_MAX_DELAY) || options.tracingLoadMaxDelay;
     options.tracingLoadLimit = parseInt(process.env.NEURON_BROWSER_LOAD_LIMIT) || options.tracingLoadLimit;
-    options.release = process.env.NEURON_BROWSER_RELEASE || options.release;
+    options.release = process.env.SEARCH_API_RELEASE_LEVEL ? parseInt(process.env.SEARCH_API_RELEASE_LEVEL) : options.release;
     options.version = readSystemVersion();
 
     return options;

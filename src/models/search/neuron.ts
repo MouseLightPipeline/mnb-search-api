@@ -1,6 +1,8 @@
-import {Sequelize, DataTypes} from "sequelize";
+import {Sequelize, DataTypes, Instance, Model} from "sequelize";
+import {ITracing} from "./tracing";
+import {IBrainArea} from "./brainArea";
 
-export interface INeuron {
+export interface INeuronAttributes {
     id: string;
     idString: string;
     tag: string;
@@ -8,14 +10,28 @@ export interface INeuron {
     x: number;
     y: number;
     z: number;
-    brainAreaId: string;
     sharing: number;
+    doi: string;
+    brainArea: IBrainArea;
+    tracings: ITracing[];
+}
+
+
+export interface INeuron extends Instance<INeuronAttributes>, INeuronAttributes {
+    tracings: ITracing[];
+    getTracings(): ITracing[];
+
+    brainArea: IBrainArea;
+    getBrainArea(): IBrainArea;
+}
+
+export interface INeuronTable extends Model<INeuron, INeuronAttributes> {
 }
 
 export const TableName = "Neuron";
 
 export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any {
-    const Neuron: any = sequelize.define(TableName, {
+    const Neuron = sequelize.define(TableName, {
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
@@ -59,7 +75,7 @@ export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any
     Neuron.associate = (models: any) => {
         Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}});
         Neuron.hasMany(models.NeuronBrainAreaMap, {foreignKey: "neuronId"});
-        Neuron.hasMany(models.Tracing, {foreignKey: "neuronId"});
+        Neuron.hasMany(models.Tracing, {foreignKey: "neuronId", as: "tracings"});
     };
 
     return Neuron;

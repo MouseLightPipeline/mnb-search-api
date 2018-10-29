@@ -1,4 +1,6 @@
-let typeDefinitions = `
+export const QueryTypeDefinitions = `
+scalar Date
+
 type SystemSettings {
     version: String
     release: String
@@ -52,8 +54,7 @@ type Neuron {
 
 type Tracing {
     id: String!
-    nodeCount: Int
-    transformedAt: Float
+    transformedAt: Date
     soma: Node
     tracingStructure: TracingStructure
     nodes(brainAreaIds: [String!]): [Node!]!
@@ -136,9 +137,4 @@ type Query {
 
     systemMessage: String
 }
-
-schema {
-  query: Query
-}`;
-
-export default typeDefinitions;
+`;

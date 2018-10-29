@@ -10,14 +10,14 @@ import {operatorIdValueMap} from "../models/queryOperator";
 import {IBrainArea} from "../models/search/brainArea";
 import {ITracingStructure} from "../models/search/tracingStructure";
 import {IStructureIdentifier} from "../models/search/structureIdentifier";
-import {INeuron} from "../models/search/neuron";
+import {INeuronAttributes} from "../models/search/neuron";
 import {INeuronBrainMap} from "../models/search/neuronBrainAreaMap";
 import {MetricsStorageManager} from "../data-access/metricsStorageManager";
 
 const Op = Sequelize.Op;
 
 export interface IQueryDataPage {
-    neurons: INeuron[];
+    neurons: INeuronAttributes[];
     totalCount: number;
     queryTime: number;
     nonce: string;
@@ -264,6 +264,14 @@ export class GraphQLServerContext {
         } catch (err) {
             console.log(err);
         }
+    }
+
+    public async updateSample(id: string): Promise<boolean> {
+        return false;
+    }
+
+    public async updateNeuron(id: string): Promise<boolean> {
+        return false;
     }
 }
 

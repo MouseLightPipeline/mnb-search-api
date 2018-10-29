@@ -1,3 +1,6 @@
+import {ITracingStructure} from "./tracingStructure";
+import {ITracingNode} from "./tracingNode";
+
 export enum ExportFormat {
     SWC = 0,
     JSON = 1
@@ -7,11 +10,13 @@ export interface ITracing {
     id: string;
     neuronId: string;
     tracingStructureId: string;
+    tracingStructure: ITracingStructure;
     swcTracingId: string;
     nodeCount: number;
     pathCount: number;
     branchCount: number;
     endCount: number;
+    soma: ITracingNode;
     transformedAt: Date;
 }
 
@@ -38,7 +43,7 @@ export function sequelizeImport(sequelize, DataTypes) {
         Tracing.hasMany(models.TracingNode, {foreignKey: "tracingId", as: "nodes"});
         Tracing.hasMany(models.NeuronBrainAreaMap, {foreignKey: "tracingId"});
         Tracing.belongsTo(models.Neuron, {foreignKey: "neuronId", as: "neuron"});
-        Tracing.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId"});
+        Tracing.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId", as: "tracingStructure"});
     };
 
     return Tracing;

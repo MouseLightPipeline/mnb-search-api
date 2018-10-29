@@ -27,14 +27,13 @@ function versionMajorMinor(version: string) {
     return [null, null];
 }
 
-function createShellTasks(sourceFile) {
+function createShellTasks(sourceFile: string) {
     // Clean and build
     const cleanCommand = `rm -rf dist`;
 
     const compileTypescript = `tsc -p tsconfig.prod.json`;
 
-    const moveFiles1 = `cp ./{package.json,yarn.lock,LICENSE,docker-entry.sh,migrate.sh} dist`;
-    const moveFiles2 = `cp .sequelizerc.prod dist/.sequelizerc`;
+    const moveFiles = `cp ./{package.json,yarn.lock,LICENSE,docker-entry.sh,migrate.sh,.sequelizerc} dist`;
     const moveDirectories = `cp -R migrations dist/`;
 
     const contents = fs.readFileSync(sourceFile).toString();
@@ -69,8 +68,7 @@ function createShellTasks(sourceFile) {
         shell.task([
             cleanCommand,
             compileTypescript,
-            moveFiles1,
-            moveFiles2,
+            moveFiles,
             moveDirectories
         ]),
         shell.task([

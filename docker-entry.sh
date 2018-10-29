@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
-./migrate.sh
+logName=$(date '+%Y-%m-%d_%H-%M-%S');
+
+mkdir -p /var/log/mnb
+
+./migrate.sh &> /var/log/mnb/search-api-${logName}.log
 
 wait
 
 export DEBUG=mnb*
 
-node app.js
+node --max-old-space-size=8192 --optimize-for-size app.js >> /var/log/mnb/search-api-${logName}.log 2>&1
