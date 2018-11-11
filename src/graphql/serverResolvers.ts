@@ -1,11 +1,12 @@
-import {GraphQLScalarType} from 'graphql';
-import {Kind} from 'graphql/language';
+import {GraphQLScalarType} from "graphql";
+import {Kind} from "graphql/language";
 import {GraphQLServerContext, IQueryDataPage} from "./serverContext";
 import {IQueryOperator, operators} from "../models/queryOperator";
 import {ReleaseLevel, ServiceOptions} from "../options/serviceOptions";
 import {IBrainArea} from "../models/search/brainArea";
 import {IStructureIdentifier} from "../models/search/structureIdentifier";
 import {ITracingStructure} from "../models/search/tracingStructure";
+import {PersistentStorageManager} from "../data-access/persistentStorageManager";
 
 const debug = require("debug")("mnb:search-api:resolvers");
 
@@ -79,8 +80,8 @@ const resolvers = {
         }
     },
     Date: new GraphQLScalarType({
-        name: 'Date',
-        description: 'Date custom scalar type',
+        name: "Date",
+        description: "Date custom scalar type",
         parseValue: (value) => {
             return new Date(value); // value from the client
         },
@@ -103,11 +104,15 @@ export default resolvers;
 interface ISystemSettings {
     version: string;
     release: string;
+    neuronCount: number;
 }
 
-function getSystemSettings(): ISystemSettings {
+async function getSystemSettings(): Promise<ISystemSettings> {
+    const neuronCount = await PersistentStorageManager.Instance().Neurons.count();
+
     return {
         version: ServiceOptions.version,
-        release: ReleaseLevel[ServiceOptions.release]
+        release: ReleaseLevel[ServiceOptions.release],
+        neuronCount
     }
 }

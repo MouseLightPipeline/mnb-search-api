@@ -4,6 +4,7 @@ scalar Date
 type SystemSettings {
     version: String
     release: String
+    neuronCount: Int
 }
 
 type QueryOperator {
@@ -97,8 +98,8 @@ type QueryOutput {
     queryTime: Int
     nonce: String
     error: Error
-} 
-    
+}
+
 type Error {
     message: String
     name: String
@@ -127,7 +128,8 @@ input FilterInput {
 
 type Query {
     systemSettings: SystemSettings
-    
+    systemMessage: String          
+
     queryOperators: [QueryOperator!]!
     brainAreas: [BrainArea!]!
     structureIdentifiers: [StructureIdentifier!]!
@@ -135,6 +137,5 @@ type Query {
 
     queryData(filters: [FilterInput!]): QueryOutput
 
-    systemMessage: String
 }
 `;

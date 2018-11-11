@@ -43,7 +43,7 @@ export function sequelizeImport(sequelize, DataTypes) {
         Tracing.hasMany(models.TracingNode, {foreignKey: "tracingId", as: "nodes"});
         Tracing.hasMany(models.NeuronBrainAreaMap, {foreignKey: "tracingId"});
         Tracing.belongsTo(models.Neuron, {foreignKey: "neuronId", as: "neuron"});
-        Tracing.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId", as: "tracingStructure"});
+        Tracing.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId"});
     };
 
     return Tracing;

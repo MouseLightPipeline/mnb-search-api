@@ -20,7 +20,7 @@ export function sequelizeImport(sequelize, DataTypes) {
     });
 
     TracingStructure.associate = models => {
-        TracingStructure.hasMany(models.Tracing, {foreignKey: "tracingStructureId", as: "tracings"});
+        TracingStructure.hasMany(models.Tracing, {foreignKey: "tracingStructureId"});
     };
 
     return TracingStructure;

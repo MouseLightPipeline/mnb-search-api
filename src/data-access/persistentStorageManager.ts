@@ -4,7 +4,7 @@ import {Sequelize, Op} from "sequelize";
 
 const debug = require("debug")("mnb:search-api:storage-manager");
 
-import {INeuron, INeuronAttributes, INeuronTable} from "../models/search/neuron";
+import {INeuronAttributes, INeuronTable} from "../models/search/neuron";
 import {SequelizeOptions} from "../options/databaseOptions"
 import {loadModels} from "./modelLoader";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
@@ -121,26 +121,26 @@ export class PersistentStorageManager {
     }
 
     public async prepareSearchContents(searchDatabase: ISequelizeDatabase<SearchTables>) {
-        const neurons: INeuron[] = await searchDatabase.tables.Neuron.findAll({
-            include: [searchDatabase.tables.BrainArea, {
-                model: searchDatabase.tables.Tracing,
-                as: "tracings",
-                include: [{
-                    model: searchDatabase.tables.TracingStructure,
-                    as: "tracingStructure"
-                }]
-            }]
+        const neurons: any[] = await searchDatabase.tables.Neuron.findAll({
+            include: [
+                searchDatabase.tables.BrainArea,
+                {
+                    model: searchDatabase.tables.Tracing,
+                    include: [searchDatabase.tables.TracingStructure]
+                }
+            ]
         });
 
         await Promise.all(neurons.map(async (n) => {
-            const obj = n.toJSON();
-            // obj.tracings = n.Tracings;
-            // obj.Tracings = undefined;
-            // obj.brainArea = n.BrainArea;
-            // obj.BrainArea = undefined;
+            const obj: any = n.toJSON();
+
+            obj.tracings = n.Tracings;
+            obj.Tracings = undefined;
+            obj.brainArea = n.BrainArea;
+            obj.BrainArea = undefined;
 
             await Promise.all(obj.tracings.map(async (t) => {
-                // t.tracingStructure = t.TracingStructure;
+                t.tracingStructure = t.TracingStructure;
 
                 const map = await searchDatabase.tables.TracingSomaMap.findOne({where: {tracingId: t.id}});
 
