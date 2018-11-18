@@ -38,7 +38,7 @@ export class GraphQLServerContext {
         return this._storageManager.StructureIdentifiers.findAll({});
     }
 
-     public async getTracingStructures(): Promise<ITracingStructure[]> {
+    public async getTracingStructures(): Promise<ITracingStructure[]> {
         return this._storageManager.TracingStructures.findAll({});
     }
 
@@ -73,6 +73,7 @@ export class GraphQLServerContext {
             return {neurons: [], queryTime: -1, totalCount: 0, nonce, error: err};
         }
     }
+
     private queryFromFilter(filter: IFilterInput) {
         let query: FindOptions<INeuronBrainMap> = {
             where: {},
@@ -117,20 +118,43 @@ export class GraphQLServerContext {
                     ]
                 };
             } else {
-                where = {
-                    [Op.or]: [
-                        {
-                            neuronIdString: {
-                                [Op.iLike]: `%${filter.tracingIdsOrDOIs[0]}%`
+                if (filter.tracingIdsOrDOIs.length === 1) {
+                    where = {
+                        [Op.or]: [
+                            {
+                                neuronIdString: {
+                                    [Op.iLike]: `%${filter.tracingIdsOrDOIs[0]}%`
+                                }
+                            },
+                            {
+                                neuronDOI: {
+                                    [Op.iLike]: `%${filter.tracingIdsOrDOIs[0]}%`
+                                }
                             }
-                        },
-                        {
-                            neuronDOI: {
-                                [Op.iLike]: `%${filter.tracingIdsOrDOIs[0]}%`
-                            }
+                        ]
+                    };
+                } else {
+                    const ors = filter.tracingIdsOrDOIs.map(id => {
+                        return {
+                            [Op.or]: [
+                                {
+                                    neuronIdString: {
+                                        [Op.iLike]: `%${id}%`
+                                    }
+                                },
+                                {
+                                    neuronDOI: {
+                                        [Op.iLike]: `%${id}%`
+                                    }
+                                }
+                            ]
                         }
-                    ]
-                };
+                    });
+
+                    where = {
+                        [Op.or]: ors
+                    }
+                }
             }
 
             query.where = where;
@@ -229,7 +253,7 @@ export class GraphQLServerContext {
         let neurons = results.reduce((prev, curr, index) => {
             if (index === 0 || filters[index].composition === FilterComposition.or) {
                 return _.uniqBy(prev.concat(curr), "id");
-            } else if  (filters[index].composition === FilterComposition.and) {
+            } else if (filters[index].composition === FilterComposition.and) {
                 return _.uniqBy(_.intersectionBy(prev, curr, "id"), "id");
             } else {
                 // Not
@@ -239,7 +263,8 @@ export class GraphQLServerContext {
 
         const duration = Date.now() - start;
 
-        this.logQueries(filters, queries, duration).then(() => {});
+        this.logQueries(filters, queries, duration).then(() => {
+        });
 
         return {neurons, duration};
     }

@@ -145,7 +145,7 @@ export class PersistentStorageManager {
                 const map = await searchDatabase.tables.TracingSomaMap.findOne({where: {tracingId: t.id}});
 
                 if (map) {
-                    const node = await searchDatabase.tables.TracingNode.findById(map.somaId);
+                    const node = await searchDatabase.tables.TracingNode.findByPk(map.somaId);
 
                     t.soma = node.toJSON();
                 }
