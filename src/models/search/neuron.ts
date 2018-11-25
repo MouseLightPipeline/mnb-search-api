@@ -61,7 +61,7 @@ export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any
     });
 
     Neuron.associate = (models: any) => {
-        Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}});
+        Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}, as: "brainArea"});
         Neuron.hasMany(models.SearchContent, {foreignKey: "neuronId"});
         Neuron.hasMany(models.Tracing, {foreignKey: "neuronId", as: "tracings"});
     };

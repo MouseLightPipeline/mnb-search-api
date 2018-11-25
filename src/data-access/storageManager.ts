@@ -122,7 +122,7 @@ export class StorageManager {
 
             Object.keys(searchDatabase.tables).forEach(modelName => {
                 if (searchDatabase.tables[modelName].prepareContents) {
-                    searchDatabase.tables[modelName].prepareContents(searchDatabase.tables);
+                    searchDatabase.tables[modelName].prepareContents();
                 }
             });
 
@@ -136,7 +136,10 @@ export class StorageManager {
     public async prepareSearchContents(searchDatabase: ISequelizeDatabase<SearchTables>) {
         const neurons: any[] = await searchDatabase.tables.Neuron.findAll({
             include: [
-                searchDatabase.tables.BrainArea,
+                {
+                    model: searchDatabase.tables.BrainArea,
+                    as: "brainArea"
+                },
                 {
                     model: searchDatabase.tables.Tracing,
                     as: "tracings",
