@@ -1,23 +1,26 @@
-import {ITracingStructure} from "./tracingStructure";
-import {ITracingNode} from "./tracingNode";
+import {Instance, Model} from "sequelize";
 
-export enum ExportFormat {
-    SWC = 0,
-    JSON = 1
-}
+import {ITracingStructureAttributes} from "./tracingStructure";
+import {ITracingNode, ITracingNodeAttributes} from "./tracingNode";
 
-export interface ITracing {
+export interface ITracingAttributes {
     id: string;
     neuronId: string;
     tracingStructureId: string;
-    tracingStructure: ITracingStructure;
-    swcTracingId: string;
+    tracingStructure: ITracingStructureAttributes;
     nodeCount: number;
     pathCount: number;
     branchCount: number;
     endCount: number;
-    soma: ITracingNode;
+    soma: ITracingNodeAttributes;
     transformedAt: Date;
+}
+
+export interface ITracing extends Instance<ITracingAttributes>, ITracingAttributes {
+    nodes: ITracingNode[];
+}
+
+export interface ITracingTable extends Model<ITracing, ITracingAttributes> {
 }
 
 export const TableName = "Tracing";
@@ -29,21 +32,22 @@ export function sequelizeImport(sequelize, DataTypes) {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4
         },
-        swcTracingId: DataTypes.UUID,
         nodeCount: DataTypes.INTEGER,
         pathCount: DataTypes.INTEGER,
         branchCount: DataTypes.INTEGER,
         endCount: DataTypes.INTEGER,
         transformedAt: DataTypes.DATE
     }, {
-        timestamps: true
+        timestamps: true,
+        freezeTableName: true
     });
 
     Tracing.associate = models => {
         Tracing.hasMany(models.TracingNode, {foreignKey: "tracingId", as: "nodes"});
-        Tracing.hasMany(models.NeuronBrainAreaMap, {foreignKey: "tracingId"});
-        Tracing.belongsTo(models.Neuron, {foreignKey: "neuronId", as: "neuron"});
-        Tracing.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId"});
+        Tracing.hasMany(models.SearchContent, {foreignKey: "tracingId"});
+        Tracing.belongsTo(models.Neuron, {foreignKey: "neuronId"});
+        Tracing.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId", as: "tracingStructure"});
+        Tracing.belongsTo(models.TracingNode, {foreignKey: "somaId", as: "soma"});
     };
 
     return Tracing;

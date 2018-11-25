@@ -1,7 +1,15 @@
-export interface ITracingStructure {
+import {Instance, Model} from "sequelize";
+
+export interface ITracingStructureAttributes {
     id: string;
     name: string;
     value: number;
+}
+
+export interface ITracingStructure extends Instance<ITracingStructureAttributes>, ITracingStructureAttributes {
+}
+
+export interface ITracingStructureTable extends Model<ITracingStructure, ITracingStructureAttributes> {
 }
 
 export const TableName = "TracingStructure";
@@ -17,6 +25,7 @@ export function sequelizeImport(sequelize, DataTypes) {
         value: DataTypes.INTEGER
     }, {
         timestamps: false,
+        freezeTableName: true
     });
 
     TracingStructure.associate = models => {

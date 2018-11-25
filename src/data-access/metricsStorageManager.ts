@@ -3,6 +3,7 @@ import {FieldType, InfluxDB} from "influx";
 const debug = require("debug")("mnb:search-api:metrics");
 
 import {MetricsOptions} from "../options/databaseOptions";
+import {ISearchContext} from "../graphql/serverResolvers";
 
 const reattemptConnectDelay = 10;
 
@@ -13,15 +14,20 @@ export class MetricsStorageManager {
         return _manager;
     }
 
-    public async logQuery(queryObject: any, querySql: any, errors: any, duration: number) {
+    public async logQuery(context: ISearchContext, querySql: any, errors: any, duration: number) {
         if (this._influxDatabase) {
             try {
                 await this._influxDatabase.writePoints([
                     {
                         measurement: MetricsOptions.measurement,
-                        tags: {user: "none"},
+                        tags: {
+                            user: "UNAUTHENTICATED",
+                            search_scope: context.scope.toFixed(0),
+                            predicate_count: context.predicates.length.toFixed(0),
+                            predicate_type: context.predicateType.toFixed(0)
+                        },
                         fields: {
-                            queryObject: JSON.stringify(queryObject),
+                            queryObject: JSON.stringify(context),
                             querySql: JSON.stringify(querySql),
                             errors: JSON.stringify(errors),
                             duration
@@ -69,7 +75,10 @@ async function establishConnection(): Promise<InfluxDB> {
                     duration: FieldType.INTEGER
                 },
                 tags: [
-                    "user"
+                    "user",
+                    "search_scope",
+                    "predicate_count",
+                    "predicate_type"
                 ]
             }
         ]

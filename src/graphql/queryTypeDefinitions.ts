@@ -2,8 +2,8 @@ export const QueryTypeDefinitions = `
 scalar Date
 
 type SystemSettings {
-    version: String
-    release: String
+    apiVersion: String
+    apiRelease: Int
     neuronCount: Int
 }
 
@@ -100,6 +100,14 @@ type QueryOutput {
     error: Error
 }
 
+type SearchOutput {
+    neurons: [Neuron]
+    totalCount: Int
+    queryTime: Int
+    nonce: String
+    error: Error
+}
+
 type Error {
     message: String
     name: String
@@ -126,8 +134,29 @@ input FilterInput {
     nonce: String
 }
 
+input Predicate {
+    predicateType: Int
+    tracingIdsOrDOIs: [String!]
+    tracingIdsOrDOIsExactMatch: Boolean
+    brainAreaIds: [String!]
+    arbCenter: InputPosition
+    arbSize: Float
+    tracingStructureIds: [String!]
+    nodeStructureIds: [String!]
+    operatorId: String
+    amount: Float
+    invert: Boolean
+    composition: Int
+}
+
+input SearchContext {
+    scope: Int
+    nonce: String
+    predicates: [Predicate!]
+}
+
 type Query {
-    systemSettings: SystemSettings
+    systemSettings(searchScope: Int): SystemSettings
     systemMessage: String          
 
     queryOperators: [QueryOperator!]!
@@ -136,6 +165,6 @@ type Query {
     tracingStructures: [TracingStructure!]!
 
     queryData(filters: [FilterInput!]): QueryOutput
-
+    searchNeurons(context: SearchContext): SearchOutput
 }
 `;

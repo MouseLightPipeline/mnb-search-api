@@ -4,20 +4,26 @@ import {GraphQLServerContext, IQueryDataPage} from "./serverContext";
 import {IQueryOperator, operators} from "../models/queryOperator";
 import {ReleaseLevel, ServiceOptions} from "../options/serviceOptions";
 import {IBrainArea} from "../models/search/brainArea";
-import {IStructureIdentifier} from "../models/search/structureIdentifier";
-import {ITracingStructure} from "../models/search/tracingStructure";
-import {PersistentStorageManager} from "../data-access/persistentStorageManager";
+import {IStructureIdentifierAttributes} from "../models/search/structureIdentifier";
+import {ITracingStructureAttributes} from "../models/search/tracingStructure";
+import {StorageManager} from "../data-access/storageManager";
+import {SearchScope} from "../models/search/neuron";
 
 const debug = require("debug")("mnb:search-api:resolvers");
+
+export enum PredicateType {
+    AnatomicalRegion = 1,
+    CustomRegion = 2,
+    IdOrDoi = 3
+}
+
+export const UnknownPredicateType = -1;
+export const MixedPredicateType = 4;
 
 interface IPosition {
     x: number;
     y: number;
     z: number;
-}
-
-interface IQueryDataArguments {
-    filters: IFilterInput[];
 }
 
 export interface IFilterInput {
@@ -35,10 +41,61 @@ export interface IFilterInput {
     nonce: string;
 }
 
+type QueryDataArguments = {
+    filters: IFilterInput[];
+}
+
+export interface IPredicate {
+    predicateType: PredicateType;
+    tracingIdsOrDOIs: string[];
+    tracingIdsOrDOIsExactMatch: boolean;
+    tracingStructureIds: string[];
+    nodeStructureIds: string[];
+    operatorId: string;
+    amount: number;
+    brainAreaIds: string[];
+    arbCenter: IPosition;
+    arbSize: number;
+    invert: boolean;
+    composition: number;
+}
+
+export interface ISearchContext {
+    scope: SearchScope;
+    nonce: string;
+    predicateType: number;
+    predicates: IPredicate[];
+}
+
+type SearchNeuronsArguments = {
+    context: ISearchContext;
+}
+
+export function predicateTypeForFilter(filter: IFilterInput): PredicateType {
+    if (filter.tracingIdsOrDOIs.length > 0) {
+        return PredicateType.IdOrDoi;
+    }
+
+    if (filter.arbCenter && filter.arbSize) {
+        return PredicateType.CustomRegion;
+    }
+
+    return PredicateType.AnatomicalRegion;
+}
+
+function contextFromFilters(filters: IFilterInput[]): ISearchContext {
+    return {
+        scope: SearchScope.Public,
+        nonce: filters.length > 0 ? filters[0].nonce : "",
+        predicateType: UnknownPredicateType,
+        predicates: filters.map(f => Object.assign({}, f, {predicateType: predicateTypeForFilter(f)}))
+    };
+}
+
 const resolvers = {
     Query: {
-        systemSettings(): any {
-            return getSystemSettings();
+        systemSettings(_, {searchScope}): any {
+            return getSystemSettings(searchScope);
         },
         queryOperators(): IQueryOperator[] {
             return operators;
@@ -46,15 +103,22 @@ const resolvers = {
         brainAreas(_, __, context: GraphQLServerContext): Promise<IBrainArea[]> {
             return context.getBrainAreas();
         },
-        structureIdentifiers(_, __, context: GraphQLServerContext): Promise<IStructureIdentifier[]> {
+        structureIdentifiers(_, __, context: GraphQLServerContext): Promise<IStructureIdentifierAttributes[]> {
             return context.getStructureIdentifiers();
         },
-        tracingStructures(_, __, context: GraphQLServerContext): Promise<ITracingStructure[]> {
+        tracingStructures(_, __, context: GraphQLServerContext): Promise<ITracingStructureAttributes[]> {
             return context.getTracingStructures();
         },
-        queryData(_, args: IQueryDataArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
+        queryData(_, args: QueryDataArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
             try {
-                return context.getNeuronsWithFilters(args.filters || []);
+                return context.getNeuronsWithPredicates(contextFromFilters(args.filters || []));
+            } catch (err) {
+                debug(err);
+            }
+        },
+        searchNeurons(_, args: SearchNeuronsArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
+            try {
+                return context.getNeuronsWithPredicates(args.context);
             } catch (err) {
                 debug(err);
             }
@@ -102,17 +166,17 @@ let systemMessage: String = "";
 export default resolvers;
 
 interface ISystemSettings {
-    version: string;
-    release: string;
+    apiVersion: string;
+    apiRelease: number;
     neuronCount: number;
 }
 
-async function getSystemSettings(): Promise<ISystemSettings> {
-    const neuronCount = await PersistentStorageManager.Instance().Neurons.count();
+async function getSystemSettings(searchScope: SearchScope): Promise<ISystemSettings> {
+    const neuronCount = await StorageManager.Instance().neuronCount(searchScope);
 
     return {
-        version: ServiceOptions.version,
-        release: ReleaseLevel[ServiceOptions.release],
+        apiVersion: ServiceOptions.version,
+        apiRelease: ServiceOptions.release,
         neuronCount
     }
 }

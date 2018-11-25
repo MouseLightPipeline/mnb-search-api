@@ -1,4 +1,6 @@
-export interface ITracingNode {
+import {Instance, Model} from "sequelize";
+
+export interface ITracingNodeAttributes {
     id: string;
     tracingId: string;
     structureIdentifierId: string;
@@ -11,7 +13,12 @@ export interface ITracingNode {
     z: number;
     radius: number;
     lengthToParent: number;
+}
 
+export interface ITracingNode extends Instance<ITracingNodeAttributes>, ITracingNodeAttributes {
+}
+
+export interface ITracingNodeTable extends Model<ITracingNode, ITracingNodeAttributes> {
 }
 
 export const TableName = "TracingNode";
@@ -33,6 +40,7 @@ export function sequelizeImport(sequelize, DataTypes) {
         swcNodeId: DataTypes.UUID
     }, {
         timestamps: false,
+        freezeTableName: true
     });
 
     TracingNode.associate = models => {

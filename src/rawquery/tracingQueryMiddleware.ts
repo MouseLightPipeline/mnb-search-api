@@ -1,4 +1,4 @@
-import {PersistentStorageManager} from "../data-access/persistentStorageManager";
+import {StorageManager} from "../data-access/storageManager";
 import {ServiceOptions} from "../options/serviceOptions";
 
 const debug = require("debug")("mnb:search-api:raw-query");
@@ -22,7 +22,7 @@ export async function loadTracingCache(performDelay = true) {
 
     debug("loading cache");
 
-    const totalCount = await PersistentStorageManager.Instance().Tracings.count();
+    const totalCount = await StorageManager.Instance().Tracings.count();
 
     loadCacheSubset(0, ServiceOptions.tracingLoadLimit, totalCount).then();
 }
@@ -34,8 +34,8 @@ async function loadCacheSubset(offset: number, limit: number, totalCount: number
         return;
     }
 
-    const loaded = await PersistentStorageManager.Instance().Tracings.findAll({
-        include: [{model: PersistentStorageManager.Instance().Nodes, as: "nodes"}],
+    const loaded = await StorageManager.Instance().Tracings.findAll({
+        include: [{model: StorageManager.Instance().Nodes, as: "nodes"}],
         limit,
         offset
     });

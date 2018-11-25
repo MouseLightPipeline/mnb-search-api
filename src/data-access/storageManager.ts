@@ -1,13 +1,18 @@
 import * as path from "path";
 import * as SequelizeFactory from "sequelize";
-import {Sequelize, Op} from "sequelize";
-
-const debug = require("debug")("mnb:search-api:storage-manager");
-
-import {INeuronAttributes, INeuronTable} from "../models/search/neuron";
+import {Op, Sequelize} from "sequelize";
+import {INeuron, INeuronTable, SearchScope} from "../models/search/neuron";
 import {SequelizeOptions} from "../options/databaseOptions"
 import {loadModels} from "./modelLoader";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
+import {ISearchContentTable} from "../models/search/searchContent";
+import {IBrainAreaTable} from "../models/search/brainArea";
+import {IStructureIdentifierTable} from "../models/search/structureIdentifier";
+import {ITracingTable} from "../models/search/tracing";
+import {ITracingNodeTable} from "../models/search/tracingNode";
+import {ITracingStructureTable} from "../models/search/tracingStructure";
+
+const debug = require("debug")("mnb:search-api:storage-manager");
 
 const reattemptConnectDelay = 10;
 
@@ -15,22 +20,24 @@ export class SearchTables {
     public constructor() {
         this.BrainArea = null;
         this.Neuron = null;
-        this.NeuronBrainAreaMap = null;
+        this.SearchContent = null;
         this.StructureIdentifier = null;
         this.Tracing = null;
         this.TracingNode = null;
         this.TracingStructure = null;
-        this.TracingSomaMap = null;
     }
 
-    BrainArea: any;
+    BrainArea: IBrainAreaTable;
     Neuron: INeuronTable;
-    NeuronBrainAreaMap: any;
-    StructureIdentifier: any;
-    Tracing: any;
-    TracingNode: any;
-    TracingStructure: any;
-    TracingSomaMap: any;
+    SearchContent: ISearchContentTable;
+    StructureIdentifier: IStructureIdentifierTable;
+    Tracing: ITracingTable;
+    TracingNode: ITracingNodeTable;
+    TracingStructure: ITracingStructureTable;
+}
+
+class NeuronCounts {
+    [key: number]: number;
 }
 
 export interface ISequelizeDatabase<T> {
@@ -38,14 +45,16 @@ export interface ISequelizeDatabase<T> {
     tables: SearchTables;
 }
 
-export class PersistentStorageManager {
+export class StorageManager {
     private _searchDatabase: ISequelizeDatabase<SearchTables> = null;
 
-    public static Instance(): PersistentStorageManager {
+    public static Instance(): StorageManager {
         return _manager;
     }
 
-    private _neuronCache = new Map<string, INeuronAttributes>();
+    private _neuronCache = new Map<string, INeuron>();
+
+    private _neuronCounts = new NeuronCounts();
 
     // The area and all subareas, so that searching the parent is same as searching in all the children.
     private _comprehensiveBrainAreaLookup = new Map<string, string[]>();
@@ -74,8 +83,8 @@ export class PersistentStorageManager {
         return this._searchDatabase.tables.TracingNode;
     }
 
-    public get BrainCompartment() {
-        return this._searchDatabase.tables.NeuronBrainAreaMap;
+    public get SearchContent() {
+        return this._searchDatabase.tables.SearchContent;
     }
 
     public ComprehensiveBrainAreas(id: string): string[] {
@@ -86,8 +95,12 @@ export class PersistentStorageManager {
         return this._neuronCache.get(id);
     }
 
-    public get NeuronCount() {
-        return this._neuronCache.size;
+    public neuronCount(scope: SearchScope) {
+        if (scope === null || scope === undefined) {
+            return this._neuronCounts[SearchScope.Published];
+        }
+
+        return this._neuronCounts[scope];
     }
 
     public async initialize() {
@@ -126,33 +139,32 @@ export class PersistentStorageManager {
                 searchDatabase.tables.BrainArea,
                 {
                     model: searchDatabase.tables.Tracing,
-                    include: [searchDatabase.tables.TracingStructure]
+                    as: "tracings",
+                    include: [{
+                        model: searchDatabase.tables.TracingStructure,
+                        as: "tracingStructure"
+                    }, {
+                        model: searchDatabase.tables.TracingNode,
+                        as: "soma"
+                    }]
                 }
             ]
         });
 
-        await Promise.all(neurons.map(async (n) => {
+        neurons.map((n) => {
             const obj: any = n.toJSON();
-
-            obj.tracings = n.Tracings;
-            obj.Tracings = undefined;
-            obj.brainArea = n.BrainArea;
-            obj.BrainArea = undefined;
-
-            await Promise.all(obj.tracings.map(async (t) => {
-                t.tracingStructure = t.TracingStructure;
-
-                const map = await searchDatabase.tables.TracingSomaMap.findOne({where: {tracingId: t.id}});
-
-                if (map) {
-                    const node = await searchDatabase.tables.TracingNode.findByPk(map.somaId);
-
-                    t.soma = node.toJSON();
-                }
-            }));
-
             this._neuronCache.set(obj.id, obj);
-        }));
+        });
+
+        this._neuronCounts[SearchScope.Private] = this._neuronCounts[SearchScope.Team] = this._neuronCache.size;
+
+        this._neuronCounts[SearchScope.Division] = this._neuronCounts[SearchScope.Internal] = this._neuronCounts[SearchScope.Moderated] = Array.from(this._neuronCache.values()).filter(n => n.searchScope >= SearchScope.Division).length;
+
+        this._neuronCounts[SearchScope.External] = this._neuronCounts[SearchScope.Public] = this._neuronCounts[SearchScope.Published] = Array.from(this._neuronCache.values()).filter(n => n.searchScope >= SearchScope.External).length;
+
+        debug(`${this.neuronCount(SearchScope.Team)} team-visible neurons`);
+        debug(`${this.neuronCount(SearchScope.Internal)} internal-visible neurons`);
+        debug(`${this.neuronCount(SearchScope.Public)} public-visible neurons`);
 
         const brainAreas = await searchDatabase.tables.BrainArea.findAll({});
 
@@ -181,7 +193,7 @@ function createConnection<T>() {
     return loadModels(db, path.normalize(path.join(__dirname, "..", "models", "search")));
 }
 
-const _manager: PersistentStorageManager = new PersistentStorageManager();
+const _manager: StorageManager = new StorageManager();
 
 _manager.initialize().then(() => {
     debug("search database connection initialized");

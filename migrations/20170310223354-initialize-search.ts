@@ -1,16 +1,15 @@
-const TracingsTable = "Tracings";
-const TracingNodesTable = "TracingNodes";
-const NeuronsTable = "Neurons";
-const NeuronCompartmentTable = "NeuronBrainAreaMap";
-const BrainAreasTable = "BrainAreas";
-const StructureIdentifiersTable = "StructureIdentifiers";
-const TracingStructuresTable = "TracingStructures";
-const TracingSomaMapTable = "TracingSomaMap";
+const TracingTable = "Tracing";
+const TracingNodeTable = "TracingNode";
+const NeuronTable = "Neuron";
+const SearchContentTable = "SearchContent";
+const BrainAreaTable = "BrainArea";
+const StructureIdentifierTable = "StructureIdentifier";
+const TracingStructureTable = "TracingStructure";
 
 export = {
     up: async (queryInterface, Sequelize) => {
         await queryInterface.createTable(
-            BrainAreasTable,
+            BrainAreaTable,
             {
                 id: {
                     primaryKey: true,
@@ -43,58 +42,31 @@ export = {
                 acronym: Sequelize.TEXT
             });
 
-        await queryInterface.addIndex(BrainAreasTable, ["depth"]);
-        await queryInterface.addIndex(BrainAreasTable, ["structureId"]);
-        await queryInterface.addIndex(BrainAreasTable, ["parentStructureId"]);
-        await queryInterface.addIndex(BrainAreasTable, ["geometryEnable"]);
+        await queryInterface.addIndex(BrainAreaTable, ["depth"]);
+        await queryInterface.addIndex(BrainAreaTable, ["structureId"]);
+        await queryInterface.addIndex(BrainAreaTable, ["parentStructureId"]);
+        await queryInterface.addIndex(BrainAreaTable, ["geometryEnable"]);
 
         await queryInterface.createTable(
-            NeuronsTable,
+            NeuronTable,
             {
                 id: {
                     primaryKey: true,
                     type: Sequelize.UUID,
                     defaultValue: Sequelize.UUIDV4
                 },
-                idString: {
-                    type: Sequelize.TEXT,
-                    defaultValue: ""
-                },
-                tag: {
-                    type: Sequelize.TEXT,
-                    defaultValue: ""
-                },
-                keywords: {
-                    type: Sequelize.TEXT,
-                    defaultValue: ""
-                },
-                x: {
-                    type: Sequelize.DOUBLE,
-                    defaultValue: 0
-                },
-                y: {
-                    type: Sequelize.DOUBLE,
-                    defaultValue: 0
-                },
-                z: {
-                    type: Sequelize.DOUBLE,
-                    defaultValue: 0
-                },
-                sharing: {
-                    type: Sequelize.INTEGER,
-                    defaultValue: 1
-                },
-                doi: {
-                    type: Sequelize.TEXT
-                },
-                visibility: {
-                    type: Sequelize.INTEGER,
-                    defaultValue: -1
-                },
+                idString: Sequelize.TEXT,
+                tag: Sequelize.TEXT,
+                keywords: Sequelize.TEXT,
+                x: Sequelize.DOUBLE,
+                y: Sequelize.DOUBLE,
+                z: Sequelize.DOUBLE,
+                doi: Sequelize.TEXT,
+                searchScope: Sequelize.INTEGER,
                 brainAreaId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: BrainAreasTable,
+                        model: BrainAreaTable,
                         key: "id"
                     }
                 },
@@ -102,10 +74,10 @@ export = {
                 updatedAt: Sequelize.DATE,
             });
 
-        await queryInterface.addIndex(NeuronsTable, ["brainAreaId"]);
+        await queryInterface.addIndex(NeuronTable, ["brainAreaId"]);
 
         await queryInterface.createTable(
-            StructureIdentifiersTable,
+            StructureIdentifierTable,
             {
                 id: {
                     primaryKey: true,
@@ -117,7 +89,7 @@ export = {
             });
 
         await queryInterface.createTable(
-            TracingStructuresTable,
+            TracingStructureTable,
             {
                 id: {
                     primaryKey: true,
@@ -129,14 +101,13 @@ export = {
             });
 
         await queryInterface.createTable(
-            TracingsTable,
+            TracingTable,
             {
                 id: {
                     primaryKey: true,
                     type: Sequelize.UUID,
                     defaultValue: Sequelize.UUIDV4
                 },
-                swcTracingId: Sequelize.UUID,
                 transformedAt: Sequelize.DATE,
                 nodeCount: Sequelize.INTEGER,
                 pathCount: Sequelize.INTEGER,
@@ -145,14 +116,14 @@ export = {
                 tracingStructureId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: TracingStructuresTable,
+                        model: TracingStructureTable,
                         key: "id"
                     }
                 },
                 neuronId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: NeuronsTable,
+                        model: NeuronTable,
                         key: "id"
                     }
                 },
@@ -160,12 +131,11 @@ export = {
                 updatedAt: Sequelize.DATE,
             });
 
-        await queryInterface.addIndex(TracingsTable, ["neuronId"]);
-        await queryInterface.addIndex(TracingsTable, ["swcTracingId"]);
-        await queryInterface.addIndex(TracingsTable, ["tracingStructureId"]);
+        await queryInterface.addIndex(TracingTable, ["neuronId"]);
+        await queryInterface.addIndex(TracingTable, ["tracingStructureId"]);
 
         await queryInterface.createTable(
-            TracingNodesTable,
+            TracingNodeTable,
             {
                 id: {
                     primaryKey: true,
@@ -183,59 +153,32 @@ export = {
                 brainAreaId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: BrainAreasTable,
+                        model: BrainAreaTable,
                         key: "id"
                     }
                 },
                 structureIdentifierId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: StructureIdentifiersTable,
+                        model: StructureIdentifierTable,
                         key: "id"
                     }
                 },
                 tracingId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: TracingsTable,
+                        model: TracingTable,
                         key: "id"
                     }
                 }
             });
 
-        await queryInterface.addIndex(TracingNodesTable, ["tracingId"]);
-        await queryInterface.addIndex(TracingNodesTable, ["brainAreaId"]);
-        await queryInterface.addIndex(TracingNodesTable, ["structureIdentifierId"]);
+        await queryInterface.addIndex(TracingNodeTable, ["tracingId"]);
+        await queryInterface.addIndex(TracingNodeTable, ["brainAreaId"]);
+        await queryInterface.addIndex(TracingNodeTable, ["structureIdentifierId"]);
 
         await queryInterface.createTable(
-            TracingSomaMapTable,
-            {
-                id: {
-                    primaryKey: true,
-                    type: Sequelize.UUID,
-                    defaultValue: Sequelize.UUIDV4
-                },
-                tracingId: {
-                    type: Sequelize.UUID,
-                    references: {
-                        model: TracingsTable,
-                        key: "id"
-                    }
-                },
-                somaId: {
-                    type: Sequelize.UUID,
-                    references: {
-                        model: TracingNodesTable,
-                        key: "id"
-                    }
-                }
-            }
-        );
-
-        await queryInterface.addIndex(TracingSomaMapTable, ["tracingId"]);
-
-        await queryInterface.createTable(
-            NeuronCompartmentTable,
+            SearchContentTable,
             {
                 id: {
                     primaryKey: true,
@@ -252,55 +195,64 @@ export = {
                 endCount: Sequelize.INTEGER,
                 neuronIdString: Sequelize.TEXT,
                 neuronDOI: Sequelize.TEXT,
+                searchScope: Sequelize.INTEGER,
                 tracingId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: TracingsTable,
+                        model: TracingTable,
                         key: "id"
                     }
                 },
                 brainAreaId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: BrainAreasTable,
+                        model: BrainAreaTable,
                         key: "id"
                     }
                 },
                 neuronId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: NeuronsTable,
+                        model: NeuronTable,
                         key: "id"
                     }
                 },
                 tracingStructureId: {
                     type: Sequelize.UUID,
                     references: {
-                        model: TracingStructuresTable,
+                        model: TracingStructureTable,
                         key: "id"
                     }
                 }
             });
 
-        await queryInterface.addIndex(NeuronCompartmentTable, ["neuronId"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["tracingId"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["brainAreaId"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["tracingStructureId"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["nodeCount"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["somaCount"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["pathCount"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["branchCount"]);
-        await queryInterface.addIndex(NeuronCompartmentTable, ["endCount"]);
+        await queryInterface.addIndex(SearchContentTable, ["neuronId"]);
+        await queryInterface.addIndex(SearchContentTable, ["tracingId"]);
+        await queryInterface.addIndex(SearchContentTable, ["brainAreaId"]);
+        await queryInterface.addIndex(SearchContentTable, ["tracingStructureId"]);
+        await queryInterface.addIndex(SearchContentTable, ["nodeCount"]);
+        await queryInterface.addIndex(SearchContentTable, ["somaCount"]);
+        await queryInterface.addIndex(SearchContentTable, ["pathCount"]);
+        await queryInterface.addIndex(SearchContentTable, ["branchCount"]);
+        await queryInterface.addIndex(SearchContentTable, ["endCount"]);
+
+        // Add after both Tracing and TracingNode tables are created.
+        await queryInterface.addColumn(TracingTable, "somaId", {
+            type: Sequelize.UUID,
+                references: {
+                model: TracingNodeTable,
+                    key: "id"
+            }
+        });
     },
 
-    down: async (queryInterface, Sequelize) => {
-        await queryInterface.dropTable(TracingNodesTable);
-        await queryInterface.dropTable(TracingsTable);
-        await queryInterface.dropTable(NeuronsTable);
-        await queryInterface.dropTable(NeuronCompartmentTable);
-        await queryInterface.dropTable(BrainAreasTable);
-        await queryInterface.dropTable(StructureIdentifiersTable);
-        await queryInterface.dropTable(TracingStructuresTable);
-        await queryInterface.dropTable(TracingSomaMapTable);
+    down: async (queryInterface) => {
+        await queryInterface.dropTable(TracingNodeTable);
+        await queryInterface.dropTable(TracingTable);
+        await queryInterface.dropTable(NeuronTable);
+        await queryInterface.dropTable(SearchContentTable);
+        await queryInterface.dropTable(BrainAreaTable);
+        await queryInterface.dropTable(StructureIdentifierTable);
+        await queryInterface.dropTable(TracingStructureTable);
     }
 };

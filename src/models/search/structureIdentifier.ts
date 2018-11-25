@@ -1,8 +1,4 @@
-export interface IStructureIdentifier {
-    id: string;
-    name: string;
-    value: number;
-}
+import {Instance, Model} from "sequelize";
 
 export enum StructureIdentifiers {
     undefined = 0,
@@ -12,6 +8,19 @@ export enum StructureIdentifiers {
     apicalDendrite = 4,
     forkPoint = 5,
     endPoint = 6
+}
+
+export interface IStructureIdentifierAttributes {
+    id: string;
+    name: string;
+    value: number;
+}
+
+export interface IStructureIdentifier extends Instance<IStructureIdentifierAttributes>, IStructureIdentifierAttributes {
+}
+
+export interface IStructureIdentifierTable extends Model<IStructureIdentifier, IStructureIdentifierAttributes> {
+    countColumnName(s: number | string | IStructureIdentifierAttributes): string | null;
 }
 
 export const TableName = "StructureIdentifier";
@@ -27,10 +36,11 @@ export function sequelizeImport(sequelize, DataTypes) {
         value: DataTypes.INTEGER
     }, {
         timestamps: false,
+        freezeTableName: true
     });
 
     StructureIdentifier.associate = models => {
-        // StructureIdentifier.hasMany(models.SwcTracingNode, {foreignKey: "structureIdentifierId", as: "Nodes"});
+        StructureIdentifier.hasMany(models.TracingNode, {foreignKey: "structureIdentifierId", as: "nodes"});
     };
 
     const map = new Map<string, number>();
@@ -62,7 +72,7 @@ export function sequelizeImport(sequelize, DataTypes) {
         return map.size > 0;
     };
 
-    StructureIdentifier.countColumnName = (s: number | string | IStructureIdentifier) => {
+    StructureIdentifier.countColumnName = (s: number | string | IStructureIdentifierAttributes): string | null => {
         if (s === null || s === undefined) {
             return null;
         }

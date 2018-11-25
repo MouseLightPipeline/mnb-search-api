@@ -1,10 +1,17 @@
-export interface INeuronBrainMap {
+import {SearchScope} from "./neuron";
+import {Instance, Model} from "sequelize";
+
+export interface ISearchContentAttributes {
     id: string;
+    searchScope: SearchScope;
     neuronId: string;
     tracingId: string;
     brainAreaId: string;
     neuronIdString: string;
     neuronDOI: string;
+    somaX: number;
+    somaY: number;
+    somaZ: number;
     nodeCount: number;
     somaCount: number;
     pathCount: number;
@@ -12,7 +19,13 @@ export interface INeuronBrainMap {
     endCount: number;
 }
 
-export const TableName = "NeuronBrainAreaMap";
+export interface ISearchContent extends Instance<ISearchContentAttributes>, ISearchContentAttributes {
+}
+
+export interface ISearchContentTable extends Model<ISearchContent, ISearchContentAttributes> {
+}
+
+export const TableName = "SearchContent";
 
 export function sequelizeImport(sequelize, DataTypes) {
     let NeuronBrainAreaMap = sequelize.define(TableName, {
@@ -22,6 +35,7 @@ export function sequelizeImport(sequelize, DataTypes) {
         },
         neuronIdString: DataTypes.TEXT,
         neuronDOI: DataTypes.TEXT,
+        searchScope: DataTypes.INTEGER,
         somaX: DataTypes.DOUBLE,
         somaY: DataTypes.DOUBLE,
         somaZ: DataTypes.DOUBLE,
@@ -32,7 +46,7 @@ export function sequelizeImport(sequelize, DataTypes) {
         endCount: DataTypes.INTEGER
     }, {
         timestamps: false,
-        tableName: TableName
+        freezeTableName: true
     });
 
     NeuronBrainAreaMap.associate = models => {

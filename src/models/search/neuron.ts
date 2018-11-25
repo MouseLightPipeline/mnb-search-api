@@ -2,20 +2,30 @@ import {Sequelize, DataTypes, Instance, Model} from "sequelize";
 import {ITracing} from "./tracing";
 import {IBrainArea} from "./brainArea";
 
+// Currently using Team, Internal, and Public when generating this database and composing queries.  Allowing for
+// additional future fidelity without having to break any existing clients.
+export enum SearchScope {
+    Private = 0,
+    Team = 1,
+    Division = 2,
+    Internal = 3,
+    Moderated = 4,
+    External = 5,
+    Public = 6,
+    Published
+}
+
 export interface INeuronAttributes {
     id: string;
     idString: string;
+    doi: string;
     tag: string;
     keywords: string;
     x: number;
     y: number;
     z: number;
-    sharing: number;
-    doi: string;
-    brainArea: IBrainArea;
-    tracings: ITracing[];
+    searchScope: SearchScope;
 }
-
 
 export interface INeuron extends Instance<INeuronAttributes>, INeuronAttributes {
     tracings: ITracing[];
@@ -37,45 +47,23 @@ export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4
         },
-        idString: {
-            type: DataTypes.TEXT,
-            defaultValue: ""
-        },
-        tag: {
-            type: DataTypes.TEXT,
-            defaultValue: ""
-        },
-        keywords: {
-            type: DataTypes.TEXT,
-            defaultValue: ""
-        },
-        x: {
-            type: DataTypes.DOUBLE,
-            defaultValue: 0
-        },
-        y: {
-            type: DataTypes.DOUBLE,
-            defaultValue: 0
-        },
-        z: {
-            type: DataTypes.DOUBLE,
-            defaultValue: 0
-        },
-        sharing: {
-            type: DataTypes.INTEGER,
-            defaultValue: 1
-        },
-        doi: {
-            type: DataTypes.TEXT
-        }
+        idString: DataTypes.TEXT,
+        tag: DataTypes.TEXT,
+        keywords: DataTypes.TEXT,
+        x: DataTypes.DOUBLE,
+        y: DataTypes.DOUBLE,
+        z: DataTypes.DOUBLE,
+        searchScope: DataTypes.INTEGER,
+        doi: DataTypes.TEXT
     }, {
-        timestamps: true
+        timestamps: true,
+        freezeTableName: true
     });
 
     Neuron.associate = (models: any) => {
         Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}});
-        Neuron.hasMany(models.NeuronBrainAreaMap, {foreignKey: "neuronId"});
-        Neuron.hasMany(models.Tracing, {foreignKey: "neuronId"});
+        Neuron.hasMany(models.SearchContent, {foreignKey: "neuronId"});
+        Neuron.hasMany(models.Tracing, {foreignKey: "neuronId", as: "tracings"});
     };
 
     return Neuron;

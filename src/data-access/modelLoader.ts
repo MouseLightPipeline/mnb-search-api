@@ -1,7 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 
-import {ISequelizeDatabase} from "./persistentStorageManager";
+const debug = require("debug")("mnb:search-api:model-loader");
+
+import {ISequelizeDatabase} from "./storageManager";
 
 export function loadModels<T>(db: ISequelizeDatabase<T>, modelLocation: string) {
     fs.readdirSync(modelLocation).filter((file: string) => {
@@ -15,6 +17,11 @@ export function loadModels<T>(db: ISequelizeDatabase<T>, modelLocation: string) 
     });
 
     Object.keys(db.tables).forEach(modelName => {
+        if (!db.tables[modelName]) {
+            debug(`missing expected table definition for ${modelName}`);
+            return;
+        }
+
         if (db.tables[modelName].associate) {
             db.tables[modelName].associate(db.tables);
         }
