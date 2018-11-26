@@ -32,7 +32,8 @@ function loadConfiguration(): IServiceOptions {
 
     options.tracingLoadMaxDelay = parseInt(process.env.NEURON_BROWSER_LOAD_MAX_DELAY) || options.tracingLoadMaxDelay;
     options.tracingLoadLimit = parseInt(process.env.NEURON_BROWSER_LOAD_LIMIT) || options.tracingLoadLimit;
-    options.release = process.env.SEARCH_API_RELEASE_LEVEL ? parseInt(process.env.SEARCH_API_RELEASE_LEVEL) : options.release;
+    options.release = process.env.SEARCH_API_RELEASE_LEVEL ? ReleaseLevel[process.env.SEARCH_API_RELEASE_LEVEL] : options.release;
+    options.release = options.release === undefined ? ReleaseLevel.Public : options.release;
     options.version = readSystemVersion();
 
     return options;

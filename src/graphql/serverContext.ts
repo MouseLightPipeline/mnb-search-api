@@ -7,7 +7,7 @@ import {operatorIdValueMap} from "../models/queryOperator";
 import {IBrainArea} from "../models/search/brainArea";
 import {ITracingStructureAttributes} from "../models/search/tracingStructure";
 import {IStructureIdentifierAttributes} from "../models/search/structureIdentifier";
-import {INeuron, SearchScope} from "../models/search/neuron";
+import {INeuronAttributes, SearchScope} from "../models/search/neuron";
 import {MetricsStorageManager} from "../data-access/metricsStorageManager";
 import {ISearchContent} from "../models/search/searchContent";
 
@@ -16,7 +16,7 @@ const debug = require("debug")("mnb:search-api:context");
 const Op = Sequelize.Op;
 
 export interface IQueryDataPage {
-    neurons: INeuron[];
+    neurons: INeuronAttributes[];
     totalCount: number;
     queryTime: number;
     nonce: string;
@@ -73,7 +73,7 @@ export class GraphQLServerContext {
 
             neurons = neurons.sort((b, a) => a.idString.localeCompare(b.idString));
 
-            return {neurons: neurons, queryTime: duration, totalCount, nonce: context.nonce, error: null};
+            return {neurons, queryTime: duration, totalCount, nonce: context.nonce, error: null};
 
         } catch (err) {
             debug(err);
@@ -237,7 +237,7 @@ export class GraphQLServerContext {
         return query;
     }
 
-    private async performNeuronsFilterQuery(context: ISearchContext): Promise<INeuron[]> {
+    private async performNeuronsFilterQuery(context: ISearchContext): Promise<INeuronAttributes[]> {
         const start = Date.now();
 
         const queries = context.predicates.map((filter) => {
@@ -253,7 +253,7 @@ export class GraphQLServerContext {
 
         // Not interested in individual compartment results.  Just want unique tracings mapped back to neurons for
         // grouping.  Need to restructure by neurons before applying composition.
-        const results: INeuron[][] = contents.map((c, index) => {
+        const results: INeuronAttributes[][] = contents.map((c, index) => {
             let compartments = c;
 
             const predicate = context.predicates[index];

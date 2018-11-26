@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as SequelizeFactory from "sequelize";
 import {Op, Sequelize} from "sequelize";
-import {INeuron, INeuronTable, SearchScope} from "../models/search/neuron";
+import {INeuron, INeuronAttributes, INeuronTable, SearchScope} from "../models/search/neuron";
 import {SequelizeOptions} from "../options/databaseOptions"
 import {loadModels} from "./modelLoader";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
@@ -52,7 +52,7 @@ export class StorageManager {
         return _manager;
     }
 
-    private _neuronCache = new Map<string, INeuron>();
+    private _neuronCache = new Map<string, INeuronAttributes>();
 
     private _neuronCounts = new NeuronCounts();
 
@@ -108,6 +108,7 @@ export class StorageManager {
 
         await new Promise(async (resolve) => {
             await this.authenticate(searchDatabase, resolve);
+            debug(`authenticated`);
         });
 
         await this.prepareSearchContents(searchDatabase);
@@ -134,7 +135,8 @@ export class StorageManager {
     }
 
     public async prepareSearchContents(searchDatabase: ISequelizeDatabase<SearchTables>) {
-        const neurons: any[] = await searchDatabase.tables.Neuron.findAll({
+        debug(`preparing search contents`);
+        const neurons: INeuron[] = await searchDatabase.tables.Neuron.findAll({
             include: [
                 {
                     model: searchDatabase.tables.BrainArea,
@@ -154,8 +156,10 @@ export class StorageManager {
             ]
         });
 
+        debug(`loaded ${neurons.length} neurons`);
+
         neurons.map((n) => {
-            const obj: any = n.toJSON();
+            const obj: INeuronAttributes = n.toJSON();
             this._neuronCache.set(obj.id, obj);
         });
 

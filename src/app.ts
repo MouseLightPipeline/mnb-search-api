@@ -9,7 +9,7 @@ import {ReleaseLevel, ServiceOptions} from "./options/serviceOptions";
 import {tracingQueryMiddleware} from "./rawquery/tracingQueryMiddleware";
 import * as os from "os";
 import {ApolloServer} from "apollo-server-express";
-import resolvers from "./graphql/serverResolvers";
+import {mutationResolvers, queryResolvers} from "./graphql/serverResolvers";
 import {GraphQLServerContext} from "./graphql/serverContext";
 import {QueryTypeDefinitions} from "./graphql/queryTypeDefinitions";
 import {MutateTypeDefinitions} from "./graphql/mutateTypeDefinitions";
@@ -24,9 +24,14 @@ app.use("/tracings", tracingQueryMiddleware);
 
 let typeDefinitions = QueryTypeDefinitions;
 
+let resolvers = queryResolvers;
+
 if (ServiceOptions.release === ReleaseLevel.Internal) {
+    debug(`release level is internal`);
     typeDefinitions += MutateTypeDefinitions + `schema {\n\tquery: Query\n\tmutation: Mutation\n}`;
+    resolvers = Object.assign(resolvers, mutationResolvers);
 } else {
+    debug(`release level is public`);
     typeDefinitions += `schema {\n\tquery: Query\n}`;
 }
 

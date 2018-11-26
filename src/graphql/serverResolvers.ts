@@ -92,7 +92,7 @@ function contextFromFilters(filters: IFilterInput[]): ISearchContext {
     };
 }
 
-const resolvers = {
+export const queryResolvers = {
     Query: {
         systemSettings(_, {searchScope}): any {
             return getSystemSettings(searchScope);
@@ -127,22 +127,6 @@ const resolvers = {
             return systemMessage;
         }
     },
-    Mutation: {
-        updateSample(_, {id}, context: GraphQLServerContext): Promise<boolean> {
-            if (ServiceOptions.release !== ReleaseLevel.Internal) {
-                return Promise.resolve(false);
-            }
-
-            return context.updateSample(id);
-        },
-        updateNeuron(_, {id}, context: GraphQLServerContext): Promise<boolean> {
-            if (ServiceOptions.release !== ReleaseLevel.Internal) {
-                return Promise.resolve(false);
-            }
-
-            return context.updateNeuron(id);
-        }
-    },
     Date: new GraphQLScalarType({
         name: "Date",
         description: "Date custom scalar type",
@@ -161,9 +145,27 @@ const resolvers = {
     })
 };
 
-let systemMessage: String = "";
 
-export default resolvers;
+export const mutationResolvers = {
+    Mutation: {
+        updateSample(_, {id}, context: GraphQLServerContext): Promise<boolean> {
+            if (ServiceOptions.release !== ReleaseLevel.Internal) {
+                return Promise.resolve(false);
+            }
+
+            return context.updateSample(id);
+        },
+        updateNeuron(_, {id}, context: GraphQLServerContext): Promise<boolean> {
+            if (ServiceOptions.release !== ReleaseLevel.Internal) {
+                return Promise.resolve(false);
+            }
+
+            return context.updateNeuron(id);
+        }
+    }
+};
+
+let systemMessage: String = "";
 
 interface ISystemSettings {
     apiVersion: string;
