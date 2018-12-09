@@ -22,6 +22,7 @@ type BrainArea {
     structureIdPath: String
     safeName: String
     acronym: String
+    aliases: [String]
     atlasId: Int
     graphId: Int
     graphOrder: Int

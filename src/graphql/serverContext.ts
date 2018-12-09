@@ -49,6 +49,10 @@ export class GraphQLServerContext {
         }
     }
 
+    public async syncBrainAreas(): Promise<void> {
+        return this._storageManager.BrainAreas.syncBrainAreas();
+    }
+
     public async getNeuronsWithPredicates(context: ISearchContext): Promise<IQueryDataPage> {
         try {
             context.predicateType = UnknownPredicateType;

@@ -14,6 +14,8 @@ export interface IStructureIdentifierAttributes {
     id: string;
     name: string;
     value: number;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface IStructureIdentifier extends Instance<IStructureIdentifierAttributes>, IStructureIdentifierAttributes {

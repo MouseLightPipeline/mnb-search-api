@@ -145,10 +145,15 @@ export const queryResolvers = {
     })
 };
 
-
 export const mutationResolvers = {
     Mutation: {
-        updateSample(_, {id}, context: GraphQLServerContext): Promise<boolean> {
+        syncBrainAreas(_, __, context: GraphQLServerContext): Promise<void> {
+            if (ServiceOptions.release !== ReleaseLevel.Internal) {
+                return Promise.resolve();
+            }
+
+            return context.syncBrainAreas();
+        }, updateSample(_, {id}, context: GraphQLServerContext): Promise<boolean> {
             if (ServiceOptions.release !== ReleaseLevel.Internal) {
                 return Promise.resolve(false);
             }

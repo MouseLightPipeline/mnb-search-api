@@ -39,7 +39,9 @@ export = {
                     type: Sequelize.BOOLEAN,
                     defaultValue: false
                 },
-                acronym: Sequelize.TEXT
+                acronym: Sequelize.TEXT,
+                createdAt: Sequelize.DATE,
+                updatedAt: Sequelize.DATE,
             });
 
         await queryInterface.addIndex(BrainAreaTable, ["depth"]);
@@ -85,7 +87,9 @@ export = {
                     defaultValue: Sequelize.UUIDV4
                 },
                 name: Sequelize.TEXT,
-                value: Sequelize.INTEGER
+                value: Sequelize.INTEGER,
+                createdAt: Sequelize.DATE,
+                updatedAt: Sequelize.DATE,
             });
 
         await queryInterface.createTable(
@@ -97,7 +101,9 @@ export = {
                     defaultValue: Sequelize.UUIDV4
                 },
                 name: Sequelize.TEXT,
-                value: Sequelize.INTEGER
+                value: Sequelize.INTEGER,
+                createdAt: Sequelize.DATE,
+                updatedAt: Sequelize.DATE,
             });
 
         await queryInterface.createTable(

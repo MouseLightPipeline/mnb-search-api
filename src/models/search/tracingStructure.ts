@@ -4,6 +4,8 @@ export interface ITracingStructureAttributes {
     id: string;
     name: string;
     value: number;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface ITracingStructure extends Instance<ITracingStructureAttributes>, ITracingStructureAttributes {
