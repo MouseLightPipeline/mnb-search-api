@@ -10,4 +10,4 @@ RUN yarn install --production=true
 
 CMD ["./docker-entry.sh"]
 
-EXPOSE  9681
+EXPOSE  5000
