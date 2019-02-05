@@ -6,7 +6,7 @@ import {SequelizeOptions} from "../options/databaseOptions"
 import {loadModels} from "./modelLoader";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
 import {ISearchContentTable} from "../models/search/searchContent";
-import {IBrainAreaTable} from "../models/search/brainArea";
+import {IBrainArea, IBrainAreaTable} from "../models/search/brainArea";
 import {IStructureIdentifierTable} from "../models/search/structureIdentifier";
 import {ITracingTable} from "../models/search/tracing";
 import {ITracingNodeTable} from "../models/search/tracingNode";
@@ -58,6 +58,8 @@ export class StorageManager {
 
     // The area and all subareas, so that searching the parent is same as searching in all the children.
     private _comprehensiveBrainAreaLookup = new Map<string, string[]>();
+
+    private _brainAreaCache = new Map<string, IBrainArea>();
 
     public get BrainAreas() {
         return this._searchDatabase.tables.BrainArea;
@@ -136,6 +138,19 @@ export class StorageManager {
 
     public async prepareSearchContents(searchDatabase: ISequelizeDatabase<SearchTables>) {
         debug(`preparing search contents`);
+
+        const brainAreas = await searchDatabase.tables.BrainArea.findAll({});
+
+        await Promise.all(brainAreas.map(async (b) => {
+            this._brainAreaCache.set(b.id, b);
+
+            const result = await searchDatabase.tables.BrainArea.findAll({
+                attributes: ["id", "structureIdPath"],
+                where: {structureIdPath: {[Op.like]: b.structureIdPath + "%"}}
+            });
+            this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
+        }));
+
         const neurons: INeuron[] = await searchDatabase.tables.Neuron.findAll({
             include: [
                 {
@@ -160,6 +175,9 @@ export class StorageManager {
 
         neurons.map((n) => {
             const obj: INeuronAttributes = n.toJSON();
+            if (n.brainArea === null && n.tracings.length > 0 && n.tracings[0].soma) {
+                obj.brainArea = this._brainAreaCache.get(n.tracings[0].soma.brainAreaId);
+            }
             this._neuronCache.set(obj.id, obj);
         });
 
@@ -172,16 +190,6 @@ export class StorageManager {
         debug(`${this.neuronCount(SearchScope.Team)} team-visible neurons`);
         debug(`${this.neuronCount(SearchScope.Internal)} internal-visible neurons`);
         debug(`${this.neuronCount(SearchScope.Public)} public-visible neurons`);
-
-        const brainAreas = await searchDatabase.tables.BrainArea.findAll({});
-
-        await Promise.all(brainAreas.map(async (b) => {
-            const result = await searchDatabase.tables.BrainArea.findAll({
-                attributes: ["id", "structureIdPath"],
-                where: {structureIdPath: {[Op.like]: b.structureIdPath + "%"}}
-            });
-            this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
-        }));
 
         await loadTracingCache();
     }

@@ -25,6 +25,7 @@ export interface INeuronAttributes {
     y: number;
     z: number;
     searchScope: SearchScope;
+    brainArea: IBrainArea;
 }
 
 export interface INeuron extends Instance<INeuronAttributes>, INeuronAttributes {
