@@ -110,8 +110,9 @@ export class StorageManager {
 
         await new Promise(async (resolve) => {
             await this.authenticate(searchDatabase, resolve);
-            debug(`authenticated`);
         });
+
+        debug(`authenticated`);
 
         await this.prepareSearchContents(searchDatabase);
 
@@ -141,6 +142,9 @@ export class StorageManager {
 
         const brainAreas = await searchDatabase.tables.BrainArea.findAll({});
 
+        debug(`caching ${brainAreas.length} brain areas`);
+
+        /*
         await Promise.all(brainAreas.map(async (b) => {
             this._brainAreaCache.set(b.id, b);
 
@@ -150,6 +154,20 @@ export class StorageManager {
             });
             this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
         }));
+        */
+        for (let idx = 0; idx < brainAreas.length; idx++) {
+            const b = brainAreas[idx];
+
+            this._brainAreaCache.set(b.id, b);
+
+            const result = await searchDatabase.tables.BrainArea.findAll({
+                attributes: ["id", "structureIdPath"],
+                where: {structureIdPath: {[Op.like]: b.structureIdPath + "%"}}
+            });
+            this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
+        }
+
+        debug(`loading neurons`);
 
         const neurons: INeuron[] = await searchDatabase.tables.Neuron.findAll({
             include: [
