@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import * as Sequelize from "sequelize";
 import {FindOptions} from "sequelize";
 import {StorageManager} from "../data-access/storageManager";
-import {IPredicate, ISearchContext, MixedPredicateType, PredicateType, UnknownPredicateType} from "./serverResolvers";
+import {IPredicate, SearchContext, PredicateType} from "../models/searchContext";
 import {operatorIdValueMap} from "../models/queryOperator";
 import {IBrainArea} from "../models/search/brainArea";
 import {ITracingStructureAttributes} from "../models/search/tracingStructure";
@@ -10,6 +10,7 @@ import {IStructureIdentifierAttributes} from "../models/search/structureIdentifi
 import {INeuronAttributes, SearchScope} from "../models/search/neuron";
 import {MetricsStorageManager} from "../data-access/metricsStorageManager";
 import {ISearchContent} from "../models/search/searchContent";
+import {ISample} from "../models/search/sample";
 
 const debug = require("debug")("mnb:search-api:context");
 
@@ -49,23 +50,21 @@ export class GraphQLServerContext {
         }
     }
 
+    public async getSamples(): Promise<ISample[]> {
+        return this._storageManager.Samples.findAll();
+    }
+
+    public async getSample(id: string): Promise<ISample> {
+        return this._storageManager.Samples.findById(id);
+    }
+
     public async syncBrainAreas(): Promise<void> {
         return this._storageManager.BrainAreas.syncBrainAreas();
     }
 
-    public async getNeuronsWithPredicates(context: ISearchContext): Promise<IQueryDataPage> {
+    public async getNeuronsWithPredicates(context: SearchContext): Promise<IQueryDataPage> {
         try {
-            context.predicateType = UnknownPredicateType;
-
-            if (context.predicates.length === 1) {
-                context.predicateType = context.predicates[0].predicateType;
-            } else if (context.predicates.length > 1) {
-                context.predicateType = context.predicates[0].predicateType;
-
-                if (!context.predicates.every(f => f.predicateType === context.predicateType)) {
-                    context.predicateType = MixedPredicateType;
-                }
-            }
+            this._storageManager.AssertConnected();
 
             const start = Date.now();
 
@@ -73,16 +72,16 @@ export class GraphQLServerContext {
 
             const duration = Date.now() - start;
 
-            const totalCount = this._storageManager.neuronCount(context.scope);
+            const totalCount = this._storageManager.neuronCount(context.Scope);
 
             neurons = neurons.sort((b, a) => a.idString.localeCompare(b.idString));
 
-            return {neurons, queryTime: duration, totalCount, nonce: context.nonce, error: null};
+            return {neurons, queryTime: duration, totalCount, nonce: context.Nonce, error: null};
 
         } catch (err) {
             debug(err);
 
-            return {neurons: [], queryTime: -1, totalCount: 0, nonce: context.nonce, error: err};
+            return {neurons: [], queryTime: -1, totalCount: 0, nonce: context.Nonce, error: err};
         }
     }
 
@@ -241,11 +240,11 @@ export class GraphQLServerContext {
         return query;
     }
 
-    private async performNeuronsFilterQuery(context: ISearchContext): Promise<INeuronAttributes[]> {
+    private async performNeuronsFilterQuery(context: SearchContext): Promise<INeuronAttributes[]> {
         const start = Date.now();
 
-        const queries = context.predicates.map((filter) => {
-            return this.queryFromFilter(filter, context.scope);
+        const queries = context.Predicates.map((filter) => {
+            return this.queryFromFilter(filter, context.Scope);
         });
 
         const contentPromises: Promise<ISearchContent[]>[] = queries.map(async (query) => {
@@ -260,7 +259,7 @@ export class GraphQLServerContext {
         const results: INeuronAttributes[][] = contents.map((c, index) => {
             let compartments = c;
 
-            const predicate = context.predicates[index];
+            const predicate = context.Predicates[index];
 
             if (predicate.predicateType === PredicateType.CustomRegion && predicate.arbCenter && predicate.arbSize) {
                 const pos = predicate.arbCenter;
@@ -278,9 +277,9 @@ export class GraphQLServerContext {
         });
 
         let neurons = results.reduce((prev, curr, index) => {
-            if (index === 0 || context.predicates[index].composition === FilterComposition.or) {
+            if (index === 0 || context.Predicates[index].composition === FilterComposition.or) {
                 return _.uniqBy(prev.concat(curr), "id");
-            } else if (context.predicates[index].composition === FilterComposition.and) {
+            } else if (context.Predicates[index].composition === FilterComposition.and) {
                 return _.uniqBy(_.intersectionBy(prev, curr, "id"), "id");
             } else {
                 // Not

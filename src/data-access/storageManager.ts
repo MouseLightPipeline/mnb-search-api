@@ -11,14 +11,28 @@ import {IStructureIdentifierTable} from "../models/search/structureIdentifier";
 import {ITracingTable} from "../models/search/tracing";
 import {ITracingNodeTable} from "../models/search/tracingNode";
 import {ITracingStructureTable} from "../models/search/tracingStructure";
+import {ISampleTable} from "../models/search/sample";
 
 const debug = require("debug")("mnb:search-api:storage-manager");
 
 const reattemptConnectDelay = 10;
 
+export class DatabaseNotReadyError {
+    public message: string;
+    public code: string;
+    public stack: string;
+
+    public constructor() {
+        this.message = "The database is still loading";
+        this.code = "DatabaseNotReady";
+        Error.captureStackTrace(this);
+    };
+}
+
 export class SearchTables {
     public constructor() {
         this.BrainArea = null;
+        this.Sample = null;
         this.Neuron = null;
         this.SearchContent = null;
         this.StructureIdentifier = null;
@@ -29,6 +43,7 @@ export class SearchTables {
 
     BrainArea: IBrainAreaTable;
     Neuron: INeuronTable;
+    Sample: ISampleTable;
     SearchContent: ISearchContentTable;
     StructureIdentifier: IStructureIdentifierTable;
     Tracing: ITracingTable;
@@ -61,8 +76,18 @@ export class StorageManager {
 
     private _brainAreaCache = new Map<string, IBrainArea>();
 
+    public AssertConnected(): void {
+        if (this._searchDatabase === null) {
+            throw new DatabaseNotReadyError()
+        }
+    }
+
     public get BrainAreas() {
         return this._searchDatabase.tables.BrainArea;
+    }
+
+    public get Samples() {
+        return this._searchDatabase.tables.Sample;
     }
 
     public get Neurons() {
@@ -123,7 +148,6 @@ export class StorageManager {
         try {
             await searchDatabase.connection.authenticate();
 
-
             Object.keys(searchDatabase.tables).forEach(modelName => {
                 if (searchDatabase.tables[modelName].prepareContents) {
                     searchDatabase.tables[modelName].prepareContents();
@@ -144,17 +168,6 @@ export class StorageManager {
 
         debug(`caching ${brainAreas.length} brain areas`);
 
-        /*
-        await Promise.all(brainAreas.map(async (b) => {
-            this._brainAreaCache.set(b.id, b);
-
-            const result = await searchDatabase.tables.BrainArea.findAll({
-                attributes: ["id", "structureIdPath"],
-                where: {structureIdPath: {[Op.like]: b.structureIdPath + "%"}}
-            });
-            this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
-        }));
-        */
         for (let idx = 0; idx < brainAreas.length; idx++) {
             const b = brainAreas[idx];
 

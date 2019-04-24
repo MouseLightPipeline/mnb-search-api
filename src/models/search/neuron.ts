@@ -1,6 +1,7 @@
 import {Sequelize, DataTypes, Instance, Model} from "sequelize";
 import {ITracing} from "./tracing";
 import {IBrainArea} from "./brainArea";
+import {ISample} from "./sample";
 
 // Currently using Team, Internal, and Public when generating this database and composing queries.  Allowing for
 // additional future fidelity without having to break any existing clients.
@@ -25,7 +26,10 @@ export interface INeuronAttributes {
     y: number;
     z: number;
     searchScope: SearchScope;
+    brainAreaId: string;
     brainArea: IBrainArea;
+    sampleId: string;
+    sample: ISample;
 }
 
 export interface INeuron extends Instance<INeuronAttributes>, INeuronAttributes {
@@ -65,6 +69,7 @@ export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any
         Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}, as: "brainArea"});
         Neuron.hasMany(models.SearchContent, {foreignKey: "neuronId"});
         Neuron.hasMany(models.Tracing, {foreignKey: "neuronId", as: "tracings"});
+        Neuron.belongsTo(models.Sample, {foreignKey: {name: "sampleId"}, as: "sample"});
     };
 
     return Neuron;

@@ -44,6 +44,11 @@ type StructureIdentifier {
     value: Int
 }
 
+type Sample {
+    id: String!
+    idNumber: Int
+}
+
 type Neuron {
     id: String!
     idNumber: Int
@@ -51,6 +56,7 @@ type Neuron {
     tag: String
     keywords: String
     brainArea: BrainArea
+    sample: Sample
     tracings: [Tracing]
 }
 
@@ -111,6 +117,7 @@ type SearchOutput {
 
 type Error {
     message: String
+    code: String
     name: String
 }
 
@@ -162,6 +169,7 @@ type Query {
 
     queryOperators: [QueryOperator!]!
     brainAreas: [BrainArea!]!
+    samples: [Sample!]!
     structureIdentifiers: [StructureIdentifier!]!
     tracingStructures: [TracingStructure!]!
 

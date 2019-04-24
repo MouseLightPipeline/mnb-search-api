@@ -7,89 +7,18 @@ import {IBrainArea} from "../models/search/brainArea";
 import {IStructureIdentifierAttributes} from "../models/search/structureIdentifier";
 import {ITracingStructureAttributes} from "../models/search/tracingStructure";
 import {StorageManager} from "../data-access/storageManager";
-import {SearchScope} from "../models/search/neuron";
+import {INeuron, SearchScope} from "../models/search/neuron";
+import {ISample} from "../models/search/sample";
+import {contextFromFilters, IFilterInput, ISearchContextInput, SearchContext} from "../models/searchContext";
 
 const debug = require("debug")("mnb:search-api:resolvers");
-
-export enum PredicateType {
-    AnatomicalRegion = 1,
-    CustomRegion = 2,
-    IdOrDoi = 3
-}
-
-export const UnknownPredicateType = -1;
-export const MixedPredicateType = 4;
-
-interface IPosition {
-    x: number;
-    y: number;
-    z: number;
-}
-
-export interface IFilterInput {
-    tracingIdsOrDOIs: string[];
-    tracingIdsOrDOIsExactMatch: boolean;
-    tracingStructureIds: string[];
-    nodeStructureIds: string[];
-    operatorId: string;
-    amount: number;
-    brainAreaIds: string[];
-    arbCenter: IPosition;
-    arbSize: number;
-    invert: boolean;
-    composition: number;
-    nonce: string;
-}
 
 type QueryDataArguments = {
     filters: IFilterInput[];
 }
 
-export interface IPredicate {
-    predicateType: PredicateType;
-    tracingIdsOrDOIs: string[];
-    tracingIdsOrDOIsExactMatch: boolean;
-    tracingStructureIds: string[];
-    nodeStructureIds: string[];
-    operatorId: string;
-    amount: number;
-    brainAreaIds: string[];
-    arbCenter: IPosition;
-    arbSize: number;
-    invert: boolean;
-    composition: number;
-}
-
-export interface ISearchContext {
-    scope: SearchScope;
-    nonce: string;
-    predicateType: number;
-    predicates: IPredicate[];
-}
-
 type SearchNeuronsArguments = {
-    context: ISearchContext;
-}
-
-export function predicateTypeForFilter(filter: IFilterInput): PredicateType {
-    if (filter.tracingIdsOrDOIs.length > 0) {
-        return PredicateType.IdOrDoi;
-    }
-
-    if (filter.arbCenter && filter.arbSize) {
-        return PredicateType.CustomRegion;
-    }
-
-    return PredicateType.AnatomicalRegion;
-}
-
-function contextFromFilters(filters: IFilterInput[]): ISearchContext {
-    return {
-        scope: SearchScope.Public,
-        nonce: filters.length > 0 ? filters[0].nonce : "",
-        predicateType: UnknownPredicateType,
-        predicates: filters.map(f => Object.assign({}, f, {predicateType: predicateTypeForFilter(f)}))
-    };
+    context: ISearchContextInput;
 }
 
 export const queryResolvers = {
@@ -109,22 +38,30 @@ export const queryResolvers = {
         tracingStructures(_, __, context: GraphQLServerContext): Promise<ITracingStructureAttributes[]> {
             return context.getTracingStructures();
         },
+        samples(_, __, context: GraphQLServerContext): Promise<ISample[]> {
+            return context.getSamples();
+        },
         queryData(_, args: QueryDataArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
             try {
-                return context.getNeuronsWithPredicates(contextFromFilters(args.filters || []));
+                return context.getNeuronsWithPredicates(new SearchContext(contextFromFilters(args.filters || [])));
             } catch (err) {
                 debug(err);
             }
         },
         searchNeurons(_, args: SearchNeuronsArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
             try {
-                return context.getNeuronsWithPredicates(args.context);
+                return context.getNeuronsWithPredicates(new SearchContext(args.context));
             } catch (err) {
                 debug(err);
             }
         },
         systemMessage(): String {
             return systemMessage;
+        }
+    },
+    Neuron: {
+        async sample(neuron: INeuron, _, context: GraphQLServerContext): Promise<ISample> {
+            return (await context.getSample(neuron.sampleId));
         }
     },
     Date: new GraphQLScalarType({
