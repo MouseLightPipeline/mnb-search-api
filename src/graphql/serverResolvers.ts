@@ -10,6 +10,7 @@ import {StorageManager} from "../data-access/storageManager";
 import {INeuron, SearchScope} from "../models/search/neuron";
 import {ISample} from "../models/search/sample";
 import {contextFromFilters, IFilterInput, ISearchContextInput, SearchContext} from "../models/searchContext";
+import {staticApiClient} from "../data-access/staticApiService";
 
 const debug = require("debug")("mnb:search-api:resolvers");
 
@@ -54,6 +55,16 @@ export const queryResolvers = {
             } catch (err) {
                 debug(err);
             }
+        },
+        async tomographyMetadata(_, args: any, context: GraphQLServerContext): Promise<[]> {
+            try {
+                const resp = await staticApiClient.querySampleTomography();
+                return resp.data.tomographyMetadata;
+            } catch (err) {
+                console.log(err);
+            }
+
+            return [];
         },
         systemMessage(): String {
             return systemMessage;
