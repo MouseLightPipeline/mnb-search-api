@@ -1,40 +1,79 @@
-import {Instance, Model} from "sequelize";
+import {Sequelize, DataTypes, HasManyGetAssociationsMixin, Op} from "sequelize";
+
+const debug = require("debug")("mnb:search-api:compartment-model");
+
 import {sampleApiClient} from "../../graphql/services/sampleApiService";
+import {BaseModel} from "../baseModel";
+import {Neuron} from "./neuron";
 
-const debug = require("debug")("mnb:search-api:brain-area");
+export class BrainArea extends BaseModel {
+    public structureId: number;
+    public depth: number;
+    public name: string;
+    public parentStructureId: number;
+    public structureIdPath: string;
+    public safeName: string;
+    public acronym: string;
+    public atlasId: number;
+    public aliases: string[];
+    public graphId: number;
+    public graphOrder: number;
+    public hemisphereId: number;
+    public geometryFile: string;
+    public geometryColor: string;
+    public geometryEnable: boolean;
+    public readonly createdAt: Date;
+    public readonly updatedAt: Date;
 
-export interface IBrainAreaAttributes {
-    id: string;
-    structureId: number;
-    depth: number;
-    name: string;
-    parentStructureId: number;
-    structureIdPath: string;
-    safeName: string;
-    acronym: string;
-    aliases: string[];
-    atlasId: number;
-    graphId: number;
-    graphOrder: number;
-    hemisphereId: number;
-    geometryFile: string;
-    geometryColor: string;
-    geometryEnable: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    public aliasList: string[];
+
+    public getNeurons!: HasManyGetAssociationsMixin<Neuron>;
+
+    // The area and all subareas, so that searching the parent is same as searching in all the children.
+    private static _comprehensiveBrainAreaLookup = new Map<string, string[]>();
+
+    private static _brainAreaCache = new Map<string, BrainArea>();
+
+    public static getOne(id: string) {
+        return this._brainAreaCache.get(id);
+    }
+
+    public static getComprehensiveBrainArea(id: string): string[] {
+        return this._comprehensiveBrainAreaLookup.get(id);
+    }
+
+    public static async loadCompartmentCache() {
+        const brainAreas = await BrainArea.findAll({});
+
+        debug(`caching ${brainAreas.length} brain areas`);
+
+        for (let idx = 0; idx < brainAreas.length; idx++) {
+            const b = brainAreas[idx];
+
+            this._brainAreaCache.set(b.id, b);
+
+            const result = await BrainArea.findAll({
+                attributes: ["id", "structureIdPath"],
+                where: {structureIdPath: {[Op.like]: b.structureIdPath + "%"}}
+            });
+            this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
+        }
+    }
+
+    public static async syncBrainAreas(): Promise<void> {
+        const brainAreas = await sampleApiClient.queryBrainAreas();
+
+        await Promise.all(brainAreas.map(async (b) => {
+            if (!b.aliases || b.aliases.length === 0) {
+                b.aliases = null;
+            }
+            await BrainArea.upsert(b);
+        }));
+    };
 }
 
-export interface IBrainArea extends Instance<IBrainAreaAttributes>, IBrainAreaAttributes {
-}
-
-export interface IBrainAreaTable extends Model<IBrainArea, IBrainAreaAttributes> {
-    syncBrainAreas(): Promise<void>;
-}
-
-export const TableName = "BrainArea";
-
-export function sequelizeImport(sequelize, DataTypes) {
-    const BrainArea = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    BrainArea.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
@@ -55,41 +94,26 @@ export function sequelizeImport(sequelize, DataTypes) {
         geometryFile: DataTypes.TEXT,
         geometryColor: DataTypes.TEXT,
         geometryEnable: DataTypes.BOOLEAN,
-    }, {
-        getterMethods: {
-            aliases: function () {
+        aliasList: {
+            type: DataTypes.VIRTUAL(DataTypes.ARRAY(DataTypes.STRING), ["aliases"]),
+            get: function (): string[] {
                 return JSON.parse(this.getDataValue("aliases")) || [];
-            }
-        },
-        setterMethods: {
-            aliases: function (value) {
-                if (!value || value.length === 0) {
-                    this.setDataValue("aliases", null);
-                } else {
-                    this.setDataValue("aliases", JSON.stringify(value));
+            },
+            set: function (value: string[]) {
+                if (value && value.length === 0) {
+                    value = null;
                 }
+
+                this.setDataValue("aliases", JSON.stringify(value));
             }
-        },
-        timestamps: false,
-        freezeTableName: true
+        }
+    }, {
+        tableName: "BrainArea",
+        timestamps: true,
+        sequelize
     });
+};
 
-    BrainArea.associate = (models: any) => {
-        BrainArea.hasMany(models.Neuron, {foreignKey: "brainAreaId"});
-    };
-
-    BrainArea.syncBrainAreas = async (): Promise<void> => {
-        const brainAreas = await sampleApiClient.queryBrainAreas();
-
-        debug(`sync ${brainAreas.length} brain areas`);
-
-        await Promise.all(brainAreas.map(async (b) => {
-            if (!b.aliases || b.aliases.length === 0) {
-                b.aliases = null;
-            }
-            await BrainArea.upsert(b);
-        }));
-    };
-
-    return BrainArea;
-}
+export const modelAssociate = () => {
+    BrainArea.hasMany(Neuron, {foreignKey: "brainAreaId"});
+};

@@ -1,3 +1,5 @@
+import {Dialect} from "sequelize";
+
 export const Databases = {
     search: {
         database: "search_production",
@@ -6,9 +8,8 @@ export const Databases = {
         user: "postgres",
         password: "pgsecret",
         port: 5432,
-        dialect: "postgres",
-        logging: null,
-        operatorsAliases: false,
+        dialect: "postgres" as Dialect,
+        logging: null
     },
     metrics: {
         host: "metrics-db",

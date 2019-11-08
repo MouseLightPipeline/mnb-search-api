@@ -1,6 +1,4 @@
-import * as Sequelize from "sequelize";
-
-const Op = Sequelize.Op;
+import {Op} from "sequelize";
 
 export interface IQueryOperator {
     id: string;

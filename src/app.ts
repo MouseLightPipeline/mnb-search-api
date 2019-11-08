@@ -13,36 +13,44 @@ import {mutationResolvers, queryResolvers} from "./graphql/serverResolvers";
 import {GraphQLServerContext} from "./graphql/serverContext";
 import {QueryTypeDefinitions} from "./graphql/queryTypeDefinitions";
 import {MutateTypeDefinitions} from "./graphql/mutateTypeDefinitions";
+import {SequelizeOptions} from "./options/databaseOptions";
+import {RemoteDatabaseClient} from "./data-access/remoteDatabaseClient";
 
-const app = express();
+start().then().catch((err) => debug(err));
 
-app.use(bodyParser.urlencoded({extended: true}));
+async function start() {
+    await RemoteDatabaseClient.Start("search", SequelizeOptions);
 
-app.use(bodyParser.json());
+    const app = express();
 
-app.use("/tracings", tracingQueryMiddleware);
+    app.use(bodyParser.urlencoded({extended: true}));
 
-let typeDefinitions = QueryTypeDefinitions;
+    app.use(bodyParser.json());
 
-let resolvers = queryResolvers;
+    app.use("/tracings", tracingQueryMiddleware);
 
-if (ServiceOptions.release === ReleaseLevel.Internal) {
-    debug(`release level is internal`);
-    typeDefinitions += MutateTypeDefinitions + `schema {\n\tquery: Query\n\tmutation: Mutation\n}`;
-    resolvers = Object.assign(resolvers, mutationResolvers);
-} else {
-    debug(`release level is public`);
-    typeDefinitions += `schema {\n\tquery: Query\n}`;
+    let typeDefinitions = QueryTypeDefinitions;
+
+    let resolvers = queryResolvers;
+
+    if (ServiceOptions.release === ReleaseLevel.Internal) {
+        debug(`release level is internal`);
+        typeDefinitions += MutateTypeDefinitions + `schema {\n\tquery: Query\n\tmutation: Mutation\n}`;
+        resolvers = Object.assign(resolvers, mutationResolvers);
+    } else {
+        debug(`release level is public`);
+        typeDefinitions += `schema {\n\tquery: Query\n}`;
+    }
+
+    const server = new ApolloServer({
+        typeDefs: gql`${typeDefinitions}`,
+        resolvers,
+        introspection: true,
+        playground: true,
+        context: () => new GraphQLServerContext()
+    });
+
+    server.applyMiddleware({app, path: ServiceOptions.graphQLEndpoint});
+
+    app.listen(ServiceOptions.port, () => debug(`search api server is now running on http://${os.hostname()}:${ServiceOptions.port}/graphql`));
 }
-
-const server = new ApolloServer({
-    typeDefs: gql`${typeDefinitions}`,
-    resolvers,
-    introspection: true,
-    playground: true,
-    context: () => new GraphQLServerContext()
-});
-
-server.applyMiddleware({app, path: ServiceOptions.graphQLEndpoint});
-
-app.listen(ServiceOptions.port, () => debug(`search api server is now running on http://${os.hostname()}:${ServiceOptions.port}/graphql`));

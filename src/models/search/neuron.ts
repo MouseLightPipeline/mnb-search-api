@@ -1,7 +1,14 @@
-import {Sequelize, DataTypes, Instance, Model} from "sequelize";
-import {ITracing} from "./tracing";
-import {IBrainArea} from "./brainArea";
-import {ISample} from "./sample";
+import {Sequelize, DataTypes, BelongsToGetAssociationMixin, HasManyGetAssociationsMixin} from "sequelize";
+
+const debug = require("debug")("mnb:search-api:neuron-model");
+
+import {BaseModel} from "../baseModel";
+import {BrainArea} from "./brainArea";
+import {Tracing} from "./tracing";
+import {Sample} from "./sample";
+import {SearchContent} from "./searchContent";
+import {TracingStructure} from "./tracingStructure";
+import {TracingNode} from "./tracingNode";
 
 // Currently using Team, Internal, and Public when generating this database and composing queries.  Allowing for
 // additional future fidelity without having to break any existing clients.
@@ -16,37 +23,111 @@ export enum SearchScope {
     Published
 }
 
-export interface INeuronAttributes {
+type NeuronCache = Map<string, Neuron>;
+
+class NeuronCounts {
+    [key: number]: number;
+}
+
+export type NeuronAttributes = {
     id: string;
     idString: string;
-    doi: string;
     tag: string;
     keywords: string;
     x: number;
     y: number;
     z: number;
+    doi: string;
     searchScope: SearchScope;
-    brainAreaId: string;
-    brainArea: IBrainArea;
-    sampleId: string;
-    sample: ISample;
 }
 
-export interface INeuron extends Instance<INeuronAttributes>, INeuronAttributes {
-    tracings: ITracing[];
-    getTracings(): ITracing[];
+export class Neuron extends BaseModel {
+    public idString: string;
+    public tag: string;
+    public keywords: string;
+    public x: number;
+    public y: number;
+    public z: number;
+    public doi: string;
+    public searchScope: SearchScope;
+    public readonly createdAt: Date;
+    public readonly updatedAt: Date;
 
-    brainArea: IBrainArea;
-    getBrainArea(): IBrainArea;
+    public getBrainArea!: BelongsToGetAssociationMixin<BrainArea>;
+    public getSample!: BelongsToGetAssociationMixin<Sample>;
+    public getSearchContents!: HasManyGetAssociationsMixin<SearchContent>;
+    public getTracings!: HasManyGetAssociationsMixin<Tracing>;
+
+    public tracings?: Tracing[];
+    public brainArea?: BrainArea;
+
+    private static _neuronCache: NeuronCache = new Map<string, Neuron>();
+
+    private static _neuronCounts = new NeuronCounts();
+
+    public static getOne(id: string): Neuron {
+        return this._neuronCache.get(id);
+    }
+
+    public static neuronCount(scope: SearchScope) {
+        if (scope === null || scope === undefined) {
+            return this._neuronCounts[SearchScope.Published];
+        }
+
+        return this._neuronCounts[scope];
+    }
+
+    public static async loadNeuronCache() {
+        debug(`loading neurons`);
+
+        const neurons: Neuron[] = await Neuron.findAll({
+            include: [
+                {
+                    model: BrainArea,
+                    as: "brainArea"
+                },
+                {
+                    model: Tracing,
+                    as: "tracings",
+                    include: [{
+                        model: TracingStructure,
+                        as: "tracingStructure"
+                    }, {
+                        model: TracingNode,
+                        as: "soma"
+                    }]
+                }
+            ]
+        });
+
+        debug(`loaded ${neurons.length} neurons`);
+
+
+        neurons.map((n) => {
+            if (n.brainArea === null && n.tracings.length > 0 && n.tracings[0].soma) {
+                n.brainArea = BrainArea.getOne(n.tracings[0].soma.brainAreaId);
+            }
+
+            this._neuronCache.set(n.id, n);
+        });
+
+        this._neuronCounts[SearchScope.Private] = this._neuronCounts[SearchScope.Team] = neurons.length;
+
+        this._neuronCounts[SearchScope.Division] = this._neuronCounts[SearchScope.Internal] = this._neuronCounts[SearchScope.Moderated] = neurons.filter(n => n.searchScope >= SearchScope.Division).length;
+
+        this._neuronCounts[SearchScope.External] = this._neuronCounts[SearchScope.Public] = this._neuronCounts[SearchScope.Published] = neurons.filter(n => n.searchScope >= SearchScope.External).length;
+
+        debug(`${this.neuronCount(SearchScope.Team)} team-visible neurons`);
+        debug(`${this.neuronCount(SearchScope.Internal)} internal-visible neurons`);
+        debug(`${this.neuronCount(SearchScope.Public)} public-visible neurons`);
+
+
+    }
+
 }
 
-export interface INeuronTable extends Model<INeuron, INeuronAttributes> {
-}
-
-export const TableName = "Neuron";
-
-export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any {
-    const Neuron = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    Neuron.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
@@ -61,17 +142,15 @@ export function sequelizeImport(sequelize: Sequelize, DataTypes: DataTypes): any
         searchScope: DataTypes.INTEGER,
         doi: DataTypes.TEXT
     }, {
+        tableName: "Neuron",
         timestamps: true,
-        freezeTableName: true
+        sequelize
     });
+};
 
-    Neuron.associate = (models: any) => {
-        Neuron.belongsTo(models.BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}, as: "brainArea"});
-        Neuron.hasMany(models.SearchContent, {foreignKey: "neuronId"});
-        Neuron.hasMany(models.Tracing, {foreignKey: "neuronId", as: "tracings"});
-        Neuron.belongsTo(models.Sample, {foreignKey: {name: "sampleId"}, as: "sample"});
-    };
-
-    return Neuron;
-}
-
+export const modelAssociate = () => {
+    Neuron.belongsTo(Sample, {foreignKey: {name: "sampleId"}});
+    Neuron.belongsTo(BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}, as: "brainArea"});
+    Neuron.hasMany(Tracing, {foreignKey: "neuronId", as: "tracings"});
+    Neuron.hasMany(SearchContent, {foreignKey: "neuronId"});
+};

@@ -7,15 +7,15 @@ import * as shell from "gulp-shell";
 ///
 const [buildTask, tagTask, pushTask] = createShellTasks("./package.json");
 
-gulp.task("default", ["docker-build"]);
-
 gulp.task("build", buildTask);
 
-gulp.task("docker-build", ["build"], tagTask);
+gulp.task("docker-build", gulp.series("build", tagTask));
 
-gulp.task("docker-push", ["docker-build"], pushTask);
+gulp.task("docker-push", gulp.series("docker-build", pushTask));
 
-gulp.task("release", ["docker-push"]);
+gulp.task("release", gulp.series("docker-push"));
+
+gulp.task("default", gulp.series("docker-build"));
 
 function versionMajorMinor(version: string) {
     const parts = version.split(".");

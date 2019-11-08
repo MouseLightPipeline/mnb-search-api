@@ -1,23 +1,20 @@
 import * as _ from "lodash";
-import * as Sequelize from "sequelize";
-import {FindOptions} from "sequelize";
-import {StorageManager} from "../data-access/storageManager";
+import {Op, FindOptions} from "sequelize";
+
 import {IPredicate, SearchContext, PredicateType} from "../models/searchContext";
 import {operatorIdValueMap} from "../models/queryOperator";
-import {IBrainArea} from "../models/search/brainArea";
-import {ITracingStructureAttributes} from "../models/search/tracingStructure";
-import {IStructureIdentifierAttributes} from "../models/search/structureIdentifier";
-import {INeuronAttributes, SearchScope} from "../models/search/neuron";
+import {BrainArea} from "../models/search/brainArea";
+import {TracingStructure} from "../models/search/tracingStructure";
+import {StructureIdentifier} from "../models/search/structureIdentifier";
+import {Neuron, SearchScope} from "../models/search/neuron";
 import {MetricsStorageManager} from "../data-access/metricsStorageManager";
-import {ISearchContent} from "../models/search/searchContent";
-import {ISample} from "../models/search/sample";
+import {SearchContent} from "../models/search/searchContent";
+import {Sample} from "../models/search/sample";
 
 const debug = require("debug")("mnb:search-api:context");
 
-const Op = Sequelize.Op;
-
 export interface IQueryDataPage {
-    neurons: INeuronAttributes[];
+    neurons: Neuron[];
     totalCount: number;
     queryTime: number;
     nonce: string;
@@ -31,48 +28,45 @@ export enum FilterComposition {
 }
 
 export class GraphQLServerContext {
-    private _storageManager = StorageManager.Instance();
     private _metricStorageManager = MetricsStorageManager.Instance();
 
-    public async getStructureIdentifiers(): Promise<IStructureIdentifierAttributes[]> {
-        return this._storageManager.StructureIdentifiers.findAll({});
+    public async getStructureIdentifiers(): Promise<StructureIdentifier[]> {
+        return StructureIdentifier.findAll({});
     }
 
-    public async getTracingStructures(): Promise<ITracingStructureAttributes[]> {
-        return this._storageManager.TracingStructures.findAll({});
+    public async getTracingStructures(): Promise<TracingStructure[]> {
+        return TracingStructure.findAll({});
     }
 
-    public async getBrainAreas(ids: string[] = null): Promise<IBrainArea[]> {
+    public async getBrainAreas(ids: string[] = null): Promise<BrainArea[]> {
         if (!ids || ids.length === 0) {
-            return this._storageManager.BrainAreas.findAll({});
+            return BrainArea.findAll({});
         } else {
-            return this._storageManager.BrainAreas.findAll({where: {id: {[Op.in]: ids}}});
+            return BrainArea.findAll({where: {id: {[Op.in]: ids}}});
         }
     }
 
-    public async getSamples(): Promise<ISample[]> {
-        return this._storageManager.Samples.findAll();
+    public async getSamples(): Promise<Sample[]> {
+        return Sample.findAll();
     }
 
-    public async getSample(id: string): Promise<ISample> {
-        return this._storageManager.Samples.findById(id);
+    public async getSample(id: string): Promise<Sample> {
+        return Sample.findByPk(id);
     }
 
     public async syncBrainAreas(): Promise<void> {
-        return this._storageManager.BrainAreas.syncBrainAreas();
+        return BrainArea.syncBrainAreas();
     }
 
     public async getNeuronsWithPredicates(context: SearchContext): Promise<IQueryDataPage> {
         try {
-            this._storageManager.AssertConnected();
-
             const start = Date.now();
 
             let neurons = await this.performNeuronsFilterQuery(context);
 
             const duration = Date.now() - start;
 
-            const totalCount = this._storageManager.neuronCount(context.Scope);
+            const totalCount = Neuron.neuronCount(context.Scope);
 
             neurons = neurons.sort((b, a) => a.idString.localeCompare(b.idString));
 
@@ -85,8 +79,8 @@ export class GraphQLServerContext {
         }
     }
 
-    private queryFromFilter(filter: IPredicate, searchScope: SearchScope): FindOptions<ISearchContent> {
-        const query: FindOptions<ISearchContent> = {};
+    private queryFromFilter(filter: IPredicate, searchScope: SearchScope): FindOptions {
+        const query: FindOptions= {};
 
         switch (filter.predicateType) {
             case PredicateType.AnatomicalRegion:
@@ -99,7 +93,7 @@ export class GraphQLServerContext {
 
                 if (filter.brainAreaIds.length > 0) {
                     // Find all brain areas that are these or children of in terms of structure path.
-                    const comprehensiveBrainAreas = filter.brainAreaIds.map(id => this._storageManager.ComprehensiveBrainAreas(id)).reduce((prev, curr) => {
+                    const comprehensiveBrainAreas = filter.brainAreaIds.map(id => BrainArea.getComprehensiveBrainArea(id)).reduce((prev, curr) => {
                         return prev.concat(curr);
                     }, []);
 
@@ -202,7 +196,7 @@ export class GraphQLServerContext {
             if (opCode) {
                 if (filter.nodeStructureIds.length > 1) {
                     let subQ = filter.nodeStructureIds.map(s => {
-                        const columnName = this._storageManager.StructureIdentifiers.countColumnName(s);
+                        const columnName = StructureIdentifier.countColumnName(s);
 
                         if (columnName) {
                             let obj = {};
@@ -221,7 +215,7 @@ export class GraphQLServerContext {
                         query.where[Op.or] = subQ;
                     }
                 } else if (filter.nodeStructureIds.length > 0) {
-                    const columnName = this._storageManager.StructureIdentifiers.countColumnName(filter.nodeStructureIds[0]);
+                    const columnName = StructureIdentifier.countColumnName(filter.nodeStructureIds[0]);
 
                     if (columnName) {
                         query.where[columnName] = createOperator(opCode, amount);
@@ -240,23 +234,23 @@ export class GraphQLServerContext {
         return query;
     }
 
-    private async performNeuronsFilterQuery(context: SearchContext): Promise<INeuronAttributes[]> {
+    private async performNeuronsFilterQuery(context: SearchContext): Promise<Neuron[]> {
         const start = Date.now();
 
         const queries = context.Predicates.map((filter) => {
             return this.queryFromFilter(filter, context.Scope);
         });
 
-        const contentPromises: Promise<ISearchContent[]>[] = queries.map(async (query) => {
-            return await this._storageManager.SearchContent.findAll(query);
+        const contentPromises: Promise<SearchContent[]>[] = queries.map(async (query) => {
+            return SearchContent.findAll(query);
         });
 
         // An array (one for each filter entry) of an array of compartments (all returned for each filter).
-        const contents: ISearchContent[][] = await Promise.all(contentPromises);
+        const contents: SearchContent[][] = await Promise.all(contentPromises);
 
         // Not interested in individual compartment results.  Just want unique tracings mapped back to neurons for
         // grouping.  Need to restructure by neurons before applying composition.
-        const results: INeuronAttributes[][] = contents.map((c, index) => {
+        const results: Neuron[][] = contents.map((c, index) => {
             let compartments = c;
 
             const predicate = context.Predicates[index];
@@ -272,7 +266,7 @@ export class GraphQLServerContext {
             }
 
             return compartments.map(c => {
-                return this._storageManager.Neuron(c.neuronId);
+                return Neuron.getOne(c.neuronId);
             });
         });
 
@@ -295,10 +289,12 @@ export class GraphQLServerContext {
     }
 
     public async updateSample(id: string): Promise<boolean> {
+        console.log(id);
         return false;
     }
 
     public async updateNeuron(id: string): Promise<boolean> {
+        console.log(id);
         return false;
     }
 }

@@ -1,53 +1,67 @@
-import {Instance, Model} from "sequelize";
+import {BelongsToGetAssociationMixin, DataTypes, Sequelize} from "sequelize";
 
-export interface ITracingNodeAttributes {
-    id: string;
+import {BaseModel} from "../baseModel";
+import {Tracing} from "./tracing";
+import {StructureIdentifier} from "./structureIdentifier";
+import {BrainArea} from "./brainArea";
+
+export interface IPageInput {
     tracingId: string;
-    structureIdentifierId: string;
-    brainAreaId: string;
-    swcNodeId: string;
-    sampleNumber: number;
-    parentNumber: number;
-    x: number;
-    y: number;
-    z: number;
-    radius: number;
-    lengthToParent: number;
+    offset: number;
+    limit: number;
 }
 
-export interface ITracingNode extends Instance<ITracingNodeAttributes>, ITracingNodeAttributes {
+export interface INodePage {
+    offset: number;
+    limit: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    nodes: TracingNode[];
 }
 
-export interface ITracingNodeTable extends Model<ITracingNode, ITracingNodeAttributes> {
+export class TracingNode extends BaseModel {
+    public sampleNumber: number;
+    public parentNumber: number;
+    public x: number;
+    public y: number;
+    public z: number;
+    public radius: number;
+    public lengthToParent: number;
+    public structureIdentifierId: string;
+    public brainAreaId: string;
+
+    public getTracing!: BelongsToGetAssociationMixin<Tracing>;
 }
 
-export const TableName = "TracingNode";
-
-export function sequelizeImport(sequelize, DataTypes) {
-    const TracingNode = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    TracingNode.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4
         },
+        // Unchanged values
         sampleNumber: DataTypes.INTEGER,
         parentNumber: DataTypes.INTEGER,
         radius: DataTypes.DOUBLE,
         lengthToParent: DataTypes.DOUBLE,
+        structureIdentifierId: DataTypes.UUID,
+        // Modified values
         x: DataTypes.DOUBLE,
         y: DataTypes.DOUBLE,
         z: DataTypes.DOUBLE,
-        swcNodeId: DataTypes.UUID
+        // Outside refs
+        swcNodeId: DataTypes.UUID,
+        brainAreaId: DataTypes.UUID
     }, {
+        tableName: "TracingNode",
         timestamps: false,
-        freezeTableName: true
+        sequelize
     });
+};
 
-    TracingNode.associate = models => {
-        TracingNode.belongsTo(models.Tracing, {foreignKey: "tracingId"});
-        TracingNode.belongsTo(models.StructureIdentifier, {foreignKey: "structureIdentifierId"});
-        TracingNode.belongsTo(models.BrainArea, {foreignKey: "brainAreaId"});
-    };
-
-    return TracingNode;
-}
+export const modelAssociate = () => {
+    TracingNode.belongsTo(Tracing, {foreignKey: "tracingId"});
+    TracingNode.belongsTo(StructureIdentifier, {foreignKey: "structureIdentifierId"});
+    TracingNode.belongsTo(BrainArea, {foreignKey: "brainAreaId"});
+};

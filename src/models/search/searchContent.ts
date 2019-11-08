@@ -1,34 +1,28 @@
-import {SearchScope} from "./neuron";
-import {Instance, Model} from "sequelize";
+import {Sequelize, DataTypes} from "sequelize";
 
-export interface ISearchContentAttributes {
-    id: string;
-    searchScope: SearchScope;
-    neuronId: string;
-    tracingId: string;
-    brainAreaId: string;
-    neuronIdString: string;
-    neuronDOI: string;
-    somaX: number;
-    somaY: number;
-    somaZ: number;
-    nodeCount: number;
-    somaCount: number;
-    pathCount: number;
-    branchCount: number;
-    endCount: number;
+import {Neuron, SearchScope} from "./neuron";
+import {BaseModel} from "../baseModel";
+import {TracingStructure} from "./tracingStructure";
+import {Tracing} from "./tracing";
+import {BrainArea} from "./brainArea";
+
+export class SearchContent extends BaseModel {
+    public neuronId: string;
+    public searchScope: SearchScope;
+    public neuronIdString: string;
+    public neuronDOI: string;
+    public somaX: number;
+    public somaY: number;
+    public somaZ: number;
+    public nodeCount: number;
+    public somaCount: number;
+    public pathCount: number;
+    public branchCount: number;
+    public endCount: number;
 }
 
-export interface ISearchContent extends Instance<ISearchContentAttributes>, ISearchContentAttributes {
-}
-
-export interface ISearchContentTable extends Model<ISearchContent, ISearchContentAttributes> {
-}
-
-export const TableName = "SearchContent";
-
-export function sequelizeImport(sequelize, DataTypes) {
-    let NeuronBrainAreaMap = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    SearchContent.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID
@@ -45,16 +39,15 @@ export function sequelizeImport(sequelize, DataTypes) {
         branchCount: DataTypes.INTEGER,
         endCount: DataTypes.INTEGER
     }, {
+        tableName: "SearchContent",
         timestamps: false,
-        freezeTableName: true
+        sequelize
     });
+};
 
-    NeuronBrainAreaMap.associate = models => {
-        NeuronBrainAreaMap.belongsTo(models.Tracing, {foreignKey: "tracingId"});
-        NeuronBrainAreaMap.belongsTo(models.BrainArea, {foreignKey: "brainAreaId"});
-        NeuronBrainAreaMap.belongsTo(models.Neuron, {foreignKey: "neuronId"});
-        NeuronBrainAreaMap.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId"});
-    };
-
-    return NeuronBrainAreaMap;
-}
+export const modelAssociate = () => {
+    SearchContent.belongsTo(Tracing, {foreignKey: "tracingId"});
+    SearchContent.belongsTo(BrainArea, {foreignKey: "brainAreaId"});
+    SearchContent.belongsTo(Neuron, {foreignKey: "neuronId"});
+    SearchContent.belongsTo(TracingStructure, {foreignKey: "tracingStructureId"});
+};

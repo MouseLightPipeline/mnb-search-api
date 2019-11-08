@@ -3,12 +3,11 @@ import {Kind} from "graphql/language";
 import {GraphQLServerContext, IQueryDataPage} from "./serverContext";
 import {IQueryOperator, operators} from "../models/queryOperator";
 import {ReleaseLevel, ServiceOptions} from "../options/serviceOptions";
-import {IBrainArea} from "../models/search/brainArea";
-import {IStructureIdentifierAttributes} from "../models/search/structureIdentifier";
-import {ITracingStructureAttributes} from "../models/search/tracingStructure";
-import {StorageManager} from "../data-access/storageManager";
-import {INeuron, SearchScope} from "../models/search/neuron";
-import {ISample} from "../models/search/sample";
+import {BrainArea} from "../models/search/brainArea";
+import {StructureIdentifier} from "../models/search/structureIdentifier";
+import {TracingStructure} from "../models/search/tracingStructure";
+import {Neuron, SearchScope} from "../models/search/neuron";
+import {Sample} from "../models/search/sample";
 import {contextFromFilters, IFilterInput, ISearchContextInput, SearchContext} from "../models/searchContext";
 import {staticApiClient} from "../data-access/staticApiService";
 
@@ -30,16 +29,16 @@ export const queryResolvers = {
         queryOperators(): IQueryOperator[] {
             return operators;
         },
-        brainAreas(_, __, context: GraphQLServerContext): Promise<IBrainArea[]> {
+        brainAreas(_, __, context: GraphQLServerContext): Promise<BrainArea[]> {
             return context.getBrainAreas();
         },
-        structureIdentifiers(_, __, context: GraphQLServerContext): Promise<IStructureIdentifierAttributes[]> {
+        structureIdentifiers(_, __, context: GraphQLServerContext): Promise<StructureIdentifier[]> {
             return context.getStructureIdentifiers();
         },
-        tracingStructures(_, __, context: GraphQLServerContext): Promise<ITracingStructureAttributes[]> {
+        tracingStructures(_, __, context: GraphQLServerContext): Promise<TracingStructure[]> {
             return context.getTracingStructures();
         },
-        samples(_, __, context: GraphQLServerContext): Promise<ISample[]> {
+        samples(_, __, context: GraphQLServerContext): Promise<Sample[]> {
             return context.getSamples();
         },
         queryData(_, args: QueryDataArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
@@ -71,8 +70,11 @@ export const queryResolvers = {
         }
     },
     Neuron: {
-        async sample(neuron: INeuron, _, context: GraphQLServerContext): Promise<ISample> {
-            return (await context.getSample(neuron.sampleId));
+        sample(neuron: Neuron): Promise<Sample> {
+            return neuron.getSample();
+        },
+        brainArea(neuron: Neuron): BrainArea {
+            return neuron.brainArea;
         }
     },
     Date: new GraphQLScalarType({
@@ -127,7 +129,7 @@ interface ISystemSettings {
 }
 
 async function getSystemSettings(searchScope: SearchScope): Promise<ISystemSettings> {
-    const neuronCount = await StorageManager.Instance().neuronCount(searchScope);
+    const neuronCount = await Neuron.neuronCount(searchScope);
 
     return {
         apiVersion: ServiceOptions.version,

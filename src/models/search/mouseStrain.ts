@@ -1,26 +1,18 @@
-import {DataTypes, Instance, Model, Models} from "sequelize";
+import {Sequelize, DataTypes, HasManyGetAssociationsMixin} from "sequelize";
 
-import {ISampleAttributes} from "./sample";
+import {BaseModel} from "../baseModel";
+import {Sample} from "./sample";
 
-export interface IMouseStrainAttributes {
-    id?: string;
-    name?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
+export class MouseStrain extends BaseModel {
+    public name: string;
+    public readonly createdAt: Date;
+    public readonly updatedAt: Date;
+
+    public getSamples!: HasManyGetAssociationsMixin<Sample>;
 }
 
-export interface IMouseStrain extends Instance<IMouseStrainAttributes>, IMouseStrainAttributes {
-    getSamples(): ISampleAttributes[];
-}
-
-export interface IMouseStrainTable extends Model<IMouseStrain, IMouseStrainAttributes> {
-}
-
-export const TableName = "MouseStrain";
-
-// noinspection JSUnusedGlobalSymbols
-export function sequelizeImport(sequelize, DataTypes: DataTypes): IMouseStrainTable {
-    const MouseStrain: IMouseStrainTable = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    MouseStrain.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
@@ -28,13 +20,12 @@ export function sequelizeImport(sequelize, DataTypes: DataTypes): IMouseStrainTa
         },
         name: DataTypes.TEXT
     }, {
+        tableName: "MouseStrain",
         timestamps: true,
-        freezeTableName: true
+        sequelize
     });
+};
 
-    MouseStrain.associate = (models: Models) => {
-        MouseStrain.hasMany(models.Sample, {foreignKey: "mouseStrainId", as: "samples"});
-    };
-
-    return MouseStrain;
-}
+export const modelAssociate = () => {
+    MouseStrain.hasMany(Sample, {foreignKey: "mouseStrainId"});
+};

@@ -1,23 +1,20 @@
-import {Instance, Model} from "sequelize";
+import {Sequelize, DataTypes, HasManyGetAssociationsMixin} from "sequelize";
 
-export interface ITracingStructureAttributes {
-    id: string;
-    name: string;
-    value: number;
-    createdAt: Date;
-    updatedAt: Date;
+import {BaseModel} from "../baseModel";
+import {Tracing} from "./tracing";
+
+export class TracingStructure extends BaseModel {
+    public id: string;
+    public name: string;
+    public value: number;
+    public readonly createdAt: Date;
+    public readonly updatedAt: Date;
+
+    public getTracings!: HasManyGetAssociationsMixin<Tracing>;
 }
 
-export interface ITracingStructure extends Instance<ITracingStructureAttributes>, ITracingStructureAttributes {
-}
-
-export interface ITracingStructureTable extends Model<ITracingStructure, ITracingStructureAttributes> {
-}
-
-export const TableName = "TracingStructure";
-
-export function sequelizeImport(sequelize, DataTypes) {
-    const TracingStructure = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    TracingStructure.init( {
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
@@ -26,13 +23,12 @@ export function sequelizeImport(sequelize, DataTypes) {
         name: DataTypes.TEXT,
         value: DataTypes.INTEGER
     }, {
-        timestamps: false,
-        freezeTableName: true
+        tableName: "TracingStructure",
+        timestamps: true,
+        sequelize
     });
+};
 
-    TracingStructure.associate = models => {
-        TracingStructure.hasMany(models.Tracing, {foreignKey: "tracingStructureId"});
-    };
-
-    return TracingStructure;
-}
+export const modelAssociate = () => {
+    TracingStructure.hasMany(Tracing, {foreignKey: "tracingStructureId"});
+};

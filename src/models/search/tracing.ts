@@ -1,32 +1,34 @@
-import {Instance, Model} from "sequelize";
+import {BelongsToGetAssociationMixin, DataTypes, HasManyGetAssociationsMixin, Sequelize} from "sequelize";
 
-import {ITracingStructureAttributes} from "./tracingStructure";
-import {ITracingNode, ITracingNodeAttributes} from "./tracingNode";
+import {BaseModel} from "../baseModel";
+import {TracingNode} from "./tracingNode";
+import {TracingStructure} from "./tracingStructure";
+import {Neuron} from "./neuron";
+import {SearchContent} from "./searchContent";
 
-export interface ITracingAttributes {
-    id: string;
-    neuronId: string;
-    tracingStructureId: string;
-    tracingStructure: ITracingStructureAttributes;
-    nodeCount: number;
-    pathCount: number;
-    branchCount: number;
-    endCount: number;
-    soma: ITracingNodeAttributes;
-    transformedAt: Date;
+
+export class Tracing extends BaseModel {
+    public nodeCount: number;
+    public pathCount: number;
+    public branchCount: number;
+    public endCount: number;
+    public transformedAt: Date;
+    public readonly createdAt: Date;
+    public readonly updatedAt: Date;
+
+    public getNodes!: HasManyGetAssociationsMixin<TracingNode>;
+    public getSearchContent!: HasManyGetAssociationsMixin<SearchContent>;
+    public getSoma!: BelongsToGetAssociationMixin<TracingNode>;
+    public getNeuron!: BelongsToGetAssociationMixin<Neuron>;
+    public getTracingStructure!: BelongsToGetAssociationMixin<TracingStructure>;
+
+    public nodes?: TracingNode[];
+    public soma?: TracingNode;
+    public tracingStructure?: TracingStructure;
 }
 
-export interface ITracing extends Instance<ITracingAttributes>, ITracingAttributes {
-    nodes: ITracingNode[];
-}
-
-export interface ITracingTable extends Model<ITracing, ITracingAttributes> {
-}
-
-export const TableName = "Tracing";
-
-export function sequelizeImport(sequelize, DataTypes) {
-    let Tracing = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    Tracing.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
@@ -38,17 +40,16 @@ export function sequelizeImport(sequelize, DataTypes) {
         endCount: DataTypes.INTEGER,
         transformedAt: DataTypes.DATE
     }, {
+        tableName: "Tracing",
         timestamps: true,
-        freezeTableName: true
+        sequelize
     });
+};
 
-    Tracing.associate = models => {
-        Tracing.hasMany(models.TracingNode, {foreignKey: "tracingId", as: "nodes"});
-        Tracing.hasMany(models.SearchContent, {foreignKey: "tracingId"});
-        Tracing.belongsTo(models.Neuron, {foreignKey: "neuronId"});
-        Tracing.belongsTo(models.TracingStructure, {foreignKey: "tracingStructureId", as: "tracingStructure"});
-        Tracing.belongsTo(models.TracingNode, {foreignKey: "somaId", as: "soma"});
-    };
-
-    return Tracing;
-}
+export const modelAssociate = () => {
+    Tracing.hasMany(TracingNode, {foreignKey: "tracingId", as: "nodes"});
+    Tracing.hasMany(SearchContent, {foreignKey: "tracingId"});
+    Tracing.belongsTo(Neuron, {foreignKey: "neuronId"});
+    Tracing.belongsTo(TracingStructure, {foreignKey: "tracingStructureId", as: "tracingStructure"});
+    Tracing.belongsTo(TracingNode, {foreignKey: "somaId", as: "soma"});
+};

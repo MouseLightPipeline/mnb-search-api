@@ -1,34 +1,29 @@
-import {DataTypes, Instance, Model, Models} from "sequelize";
+import {
+    BelongsToGetAssociationMixin,
+    DataTypes, FindOptions,
+    HasManyGetAssociationsMixin,
+    Sequelize
+} from "sequelize";
 
-import {IMouseStrainAttributes, IMouseStrainTable} from "./mouseStrain";
+import {    BaseModel} from "../baseModel";
+import {MouseStrain} from "./mouseStrain";
 
-export interface ISampleAttributes {
-    id?: string,
-    idNumber?: number;
-    animalId?: string;
-    tag?: string;
-    comment?: string;
-    sampleDate?: Date;
-    mouseStrainId?: string;
-    searchScope?: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-    deletedAt?: Date;
+
+export class Sample extends BaseModel {
+    public idNumber: number;
+    public animalId: string;
+    public tag: string;
+    public comment: string;
+    public sampleDate: Date;
+    public searchScope?: number;
+    public readonly createdAt: Date;
+    public readonly updatedAt: Date;
+
+    public getMouseStrain!: BelongsToGetAssociationMixin<MouseStrain>;
 }
 
-export interface ISample extends Instance<ISampleAttributes>, ISampleAttributes {
-    getMouseStrain(): IMouseStrainAttributes;
-}
-
-export interface ISampleTable extends Model<ISample, ISampleAttributes> {
-    MouseStrainTable: IMouseStrainTable;
-}
-
-export const TableName = "Sample";
-
-// noinspection JSUnusedGlobalSymbols
-export function sequelizeImport(sequelize, DataTypes: DataTypes): ISampleTable {
-    const Sample: ISampleTable = sequelize.define(TableName, {
+export const modelInit = (sequelize: Sequelize) => {
+    Sample.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
@@ -49,17 +44,12 @@ export function sequelizeImport(sequelize, DataTypes: DataTypes): ISampleTable {
         },
         searchScope: DataTypes.INTEGER
     }, {
+        tableName: "Sample",
         timestamps: true,
-        freezeTableName: true
+        sequelize
     });
+};
 
-    Sample.associate = (models: Models) => {
-        Sample.belongsTo(models.MouseStrain, {foreignKey: "mouseStrainId", as: "mouseStrain"});
-
-        Sample.MouseStrainTable = models.MouseStrain as IMouseStrainTable;
-    };
-
-    Sample.MouseStrainTable = null;
-
-    return Sample;
-}
+export const modelAssociate = () => {
+    Sample.belongsTo(MouseStrain, {foreignKey: "mouseStrainId"});
+};
