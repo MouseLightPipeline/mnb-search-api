@@ -22,12 +22,12 @@ export const Databases = {
 function loadDatabaseOptions() {
     const options = Object.assign({}, Databases);
 
-    options.search.host = process.env.SEARCH_DB_HOST || options.search.host;
+    options.search.host = process.env.SEARCH_DB_HOST || process.env.DATABASE_HOST || process.env.CORE_SERVICES_HOST || options.search.host;
     options.search.port = parseInt(process.env.SEARCH_DB_PORT) || options.search.port;
     options.search.user = process.env.DATABASE_USER || options.search.user;
     options.search.password = process.env.DATABASE_PW || "pgsecret";
 
-    options.metrics.host = process.env.METRICS_DB_HOST || options.metrics.host;
+    options.metrics.host = process.env.METRICS_DB_HOST || process.env.DATABASE_HOST || process.env.CORE_SERVICES_HOST || options.metrics.host;
     options.metrics.port = parseInt(process.env.METRICS_DB_PORT) || options.metrics.port;
     options.metrics.database = process.env.METRICS_DB_QUERY_DB || options.metrics.database;
 

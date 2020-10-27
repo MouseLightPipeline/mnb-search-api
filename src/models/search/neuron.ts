@@ -10,6 +10,13 @@ import {SearchContent} from "./searchContent";
 import {TracingStructure} from "./tracingStructure";
 import {TracingNode} from "./tracingNode";
 
+export enum ConsensusStatus {
+    None,
+    Pending,
+    Limited,
+    Full
+}
+
 // Currently using Team, Internal, and Public when generating this database and composing queries.  Allowing for
 // additional future fidelity without having to break any existing clients.
 export enum SearchScope {
@@ -38,6 +45,7 @@ export type NeuronAttributes = {
     y: number;
     z: number;
     doi: string;
+    consensus: ConsensusStatus;
     searchScope: SearchScope;
 }
 
@@ -49,6 +57,7 @@ export class Neuron extends BaseModel {
     public y: number;
     public z: number;
     public doi: string;
+    public consensus: ConsensusStatus;
     public searchScope: SearchScope;
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
@@ -140,6 +149,7 @@ export const modelInit = (sequelize: Sequelize) => {
         y: DataTypes.DOUBLE,
         z: DataTypes.DOUBLE,
         searchScope: DataTypes.INTEGER,
+        consensus: DataTypes.INTEGER,
         doi: DataTypes.TEXT
     }, {
         tableName: "Neuron",

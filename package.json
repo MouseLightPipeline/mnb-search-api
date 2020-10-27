@@ -9,7 +9,8 @@
   "dockerRepository": "mouselightdatabrowser",
   "dockerImageName": "search-api",
   "scripts": {
-    "debug": "DEBUG=mnb:* node --trace-warnings --max-old-space-size=8192 --optimize-for-size $NODE_DEBUG_OPTION src/app.js",
+    "debug": "node --trace-warnings --max-old-space-size=8192 --optimize-for-size src/app.js",
+    "build": "gulp build",
     "docker-build": "gulp docker-build",
     "docker-release": "gulp release"
   },

@@ -1,6 +1,6 @@
 import {Sequelize, DataTypes} from "sequelize";
 
-import {Neuron, SearchScope} from "./neuron";
+import {ConsensusStatus, Neuron, SearchScope} from "./neuron";
 import {BaseModel} from "../baseModel";
 import {TracingStructure} from "./tracingStructure";
 import {Tracing} from "./tracing";
@@ -11,6 +11,7 @@ export class SearchContent extends BaseModel {
     public searchScope: SearchScope;
     public neuronIdString: string;
     public neuronDOI: string;
+    public neuronConsensus: ConsensusStatus;
     public somaX: number;
     public somaY: number;
     public somaZ: number;
@@ -30,6 +31,7 @@ export const modelInit = (sequelize: Sequelize) => {
         neuronIdString: DataTypes.TEXT,
         neuronDOI: DataTypes.TEXT,
         searchScope: DataTypes.INTEGER,
+        neuronConsensus: DataTypes.INTEGER,
         somaX: DataTypes.DOUBLE,
         somaY: DataTypes.DOUBLE,
         somaZ: DataTypes.DOUBLE,

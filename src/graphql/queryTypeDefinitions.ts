@@ -57,6 +57,7 @@ type Neuron {
     keywords: String
     brainArea: BrainArea
     sample: Sample
+    consensus: Int
     tracings: [Tracing]
 }
 
