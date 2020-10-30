@@ -10,12 +10,12 @@ export = {
 
         await queryInterface.addIndex(NeuronTableName, ["consensus"]);
 
-        await queryInterface.addColumn(SearchContentTableName, "consensus", {
+        await queryInterface.addColumn(SearchContentTableName, "neuronConsensus", {
             type: Sequelize.INTEGER,
             defaultValue: 0
         });
 
-        await queryInterface.addIndex(SearchContentTableName, ["consensus"]);
+        await queryInterface.addIndex(SearchContentTableName, ["neuronConsensus"]);
     },
 
     down: async (queryInterface: any, Sequelize: any) => {
