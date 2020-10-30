@@ -1,13 +1,22 @@
 import * as fs from "fs";
 import * as gulp from "gulp";
 import * as shell from "gulp-shell";
+import * as del from "del";
+import * as merge from "merge-stream";
+
+const compileTypescript = `tsc -p tsconfig.prod.json`;
+
+gulp.task("clean", () => del("dist/**", {force: true}));
+
+gulp.task("compile", gulp.series("clean", shell.task([compileTypescript])));
+
+gulp.task("build", gulp.series("compile", moveTask));
 
 ///
 //  Build and tag the actual version, mark as latest, and also tag it with just the major and minor versions.
 ///
-const [buildTask, tagTask, pushTask] = createShellTasks("./package.json");
 
-gulp.task("build", buildTask);
+const [tagTask, pushTask] = createShellTasks("./package.json");
 
 gulp.task("docker-build", gulp.series("build", tagTask));
 
@@ -27,15 +36,22 @@ function versionMajorMinor(version: string) {
     return [null, null];
 }
 
+
+function moveTask() {
+    return merge(
+        [
+            gulp.src("package.json").pipe(gulp.dest("dist")),
+            gulp.src("yarn.lock").pipe(gulp.dest("dist")),
+            gulp.src("LICENSE").pipe(gulp.dest("dist")),
+            gulp.src(".sequelizerc").pipe(gulp.dest("dist")),
+            gulp.src("docker-entry.sh").pipe(gulp.dest("dist")),
+            gulp.src("migrate.sh").pipe(gulp.dest("dist")),
+            gulp.src("migrations/**", {base: "./"}).pipe(gulp.dest("dist"))
+        ]
+    );
+}
+
 function createShellTasks(sourceFile: string) {
-    // Clean and build
-    const cleanCommand = `rm -rf dist`;
-
-    const compileTypescript = `tsc -p tsconfig.prod.json`;
-
-    const moveFiles = `cp ./{package.json,yarn.lock,LICENSE,docker-entry.sh,migrate.sh,.sequelizerc} dist`;
-    const moveDirectories = `cp -R migrations dist/`;
-
     const contents = fs.readFileSync(sourceFile).toString();
 
     const npmPackage = JSON.parse(contents);
@@ -65,12 +81,6 @@ function createShellTasks(sourceFile: string) {
     const pushLatestCommand = `docker push ${imageAsLatest}`;
 
     return [
-        shell.task([
-            cleanCommand,
-            compileTypescript,
-            moveFiles,
-            moveDirectories
-        ]),
         shell.task([
             buildCommand,
             tagMajorCommand,

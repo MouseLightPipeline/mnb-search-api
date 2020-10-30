@@ -11,10 +11,11 @@ import {TracingStructure} from "./tracingStructure";
 import {TracingNode} from "./tracingNode";
 
 export enum ConsensusStatus {
-    None,
+    Full,
+    Partial,
+    Single,
     Pending,
-    Limited,
-    Full
+    None
 }
 
 // Currently using Team, Internal, and Public when generating this database and composing queries.  Allowing for
