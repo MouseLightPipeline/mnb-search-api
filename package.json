@@ -1,6 +1,6 @@
 {
   "name": "mnb-search-api",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "private": true,
   "main": "dist/app.js",
   "repository": "https://github.com/MouseLightPipeline/mnb-search-api.git",
@@ -10,6 +10,7 @@
   "dockerImageName": "search-api",
   "scripts": {
     "debug": "node --trace-warnings --max-old-space-size=8192 --optimize-for-size src/app.js",
+    "migrate": "tsc && ./migrate.sh",
     "clean": "tsc && gulp clean",
     "compile": "tsc && gulp compile",
     "build": "tsc && gulp build",
@@ -45,6 +46,7 @@
     "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-shell": "^0.7.1",
-    "merge-stream": "^2.0.0"
+    "merge-stream": "^2.0.0",
+    "typescript": "^4.2.4"
   }
 }

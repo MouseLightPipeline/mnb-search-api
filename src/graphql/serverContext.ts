@@ -8,8 +8,8 @@ import {TracingStructure} from "../models/search/tracingStructure";
 import {StructureIdentifier} from "../models/search/structureIdentifier";
 import {Neuron, SearchScope} from "../models/search/neuron";
 import {MetricsStorageManager} from "../data-access/metricsStorageManager";
-import {SearchContent} from "../models/search/searchContent";
 import {Sample} from "../models/search/sample";
+import {CcfV25SearchContent} from "../models/search/ccfV25SearchContent";
 
 const debug = require("debug")("mnb:search-api:context");
 
@@ -241,12 +241,12 @@ export class GraphQLServerContext {
             return this.queryFromFilter(filter, context.Scope);
         });
 
-        const contentPromises: Promise<SearchContent[]>[] = queries.map(async (query) => {
-            return SearchContent.findAll(query);
+        const contentPromises: Promise<CcfV25SearchContent[]>[] = queries.map(async (query) => {
+            return CcfV25SearchContent.findAll(query);
         });
 
         // An array (one for each filter entry) of an array of compartments (all returned for each filter).
-        const contents: SearchContent[][] = await Promise.all(contentPromises);
+        const contents: CcfV25SearchContent[][] = await Promise.all(contentPromises);
 
         // Not interested in individual compartment results.  Just want unique tracings mapped back to neurons for
         // grouping.  Need to restructure by neurons before applying composition.

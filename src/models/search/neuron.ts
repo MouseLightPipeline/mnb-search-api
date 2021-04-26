@@ -6,9 +6,10 @@ import {BaseModel} from "../baseModel";
 import {BrainArea} from "./brainArea";
 import {Tracing} from "./tracing";
 import {Sample} from "./sample";
-import {SearchContent} from "./searchContent";
 import {TracingStructure} from "./tracingStructure";
 import {TracingNode} from "./tracingNode";
+import {CcfV25SearchContent} from "./ccfV25SearchContent";
+import {CcfV30SearchContent} from "./ccfV30SearchContent";
 
 export enum ConsensusStatus {
     Full,
@@ -48,6 +49,7 @@ export type NeuronAttributes = {
     doi: string;
     consensus: ConsensusStatus;
     searchScope: SearchScope;
+    brainAreaId: string;
 }
 
 export class Neuron extends BaseModel {
@@ -65,7 +67,6 @@ export class Neuron extends BaseModel {
 
     public getBrainArea!: BelongsToGetAssociationMixin<BrainArea>;
     public getSample!: BelongsToGetAssociationMixin<Sample>;
-    public getSearchContents!: HasManyGetAssociationsMixin<SearchContent>;
     public getTracings!: HasManyGetAssociationsMixin<Tracing>;
 
     public tracings?: Tracing[];
@@ -112,10 +113,9 @@ export class Neuron extends BaseModel {
 
         debug(`loaded ${neurons.length} neurons`);
 
-
         neurons.map((n) => {
             if (n.brainArea === null && n.tracings.length > 0 && n.tracings[0].soma) {
-                n.brainArea = BrainArea.getOne(n.tracings[0].soma.brainAreaId);
+                n.brainArea = BrainArea.getOne(n.tracings[0].soma.brainAreaIdCcfV25);
             }
 
             this._neuronCache.set(n.id, n);
@@ -130,10 +130,7 @@ export class Neuron extends BaseModel {
         debug(`${this.neuronCount(SearchScope.Team)} team-visible neurons`);
         debug(`${this.neuronCount(SearchScope.Internal)} internal-visible neurons`);
         debug(`${this.neuronCount(SearchScope.Public)} public-visible neurons`);
-
-
     }
-
 }
 
 export const modelInit = (sequelize: Sequelize) => {
@@ -163,5 +160,6 @@ export const modelAssociate = () => {
     Neuron.belongsTo(Sample, {foreignKey: {name: "sampleId"}});
     Neuron.belongsTo(BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}, as: "brainArea"});
     Neuron.hasMany(Tracing, {foreignKey: "neuronId", as: "tracings"});
-    Neuron.hasMany(SearchContent, {foreignKey: "neuronId"});
+    Neuron.hasMany(CcfV25SearchContent, {foreignKey: "neuronId"});
+    Neuron.hasMany(CcfV30SearchContent, {foreignKey: "neuronId"});
 };

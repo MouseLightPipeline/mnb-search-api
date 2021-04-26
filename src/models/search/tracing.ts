@@ -4,8 +4,8 @@ import {BaseModel} from "../baseModel";
 import {TracingNode} from "./tracingNode";
 import {TracingStructure} from "./tracingStructure";
 import {Neuron} from "./neuron";
-import {SearchContent} from "./searchContent";
-
+import {CcfV25SearchContent} from "./ccfV25SearchContent";
+import {CcfV30SearchContent} from "./ccfV30SearchContent";
 
 export class Tracing extends BaseModel {
     public nodeCount: number;
@@ -17,7 +17,6 @@ export class Tracing extends BaseModel {
     public readonly updatedAt: Date;
 
     public getNodes!: HasManyGetAssociationsMixin<TracingNode>;
-    public getSearchContent!: HasManyGetAssociationsMixin<SearchContent>;
     public getSoma!: BelongsToGetAssociationMixin<TracingNode>;
     public getNeuron!: BelongsToGetAssociationMixin<Neuron>;
     public getTracingStructure!: BelongsToGetAssociationMixin<TracingStructure>;
@@ -47,9 +46,10 @@ export const modelInit = (sequelize: Sequelize) => {
 };
 
 export const modelAssociate = () => {
-    Tracing.hasMany(TracingNode, {foreignKey: "tracingId", as: "nodes"});
-    Tracing.hasMany(SearchContent, {foreignKey: "tracingId"});
-    Tracing.belongsTo(Neuron, {foreignKey: "neuronId"});
     Tracing.belongsTo(TracingStructure, {foreignKey: "tracingStructureId", as: "tracingStructure"});
+    Tracing.hasMany(TracingNode, {foreignKey: "tracingId", as: "nodes"});
     Tracing.belongsTo(TracingNode, {foreignKey: "somaId", as: "soma"});
+    Tracing.belongsTo(Neuron, {foreignKey: "neuronId"});
+    Tracing.hasMany(CcfV25SearchContent, {foreignKey: "tracingId"});
+    Tracing.hasMany(CcfV30SearchContent, {foreignKey: "tracingId"});
 };

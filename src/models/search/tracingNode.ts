@@ -28,7 +28,8 @@ export class TracingNode extends BaseModel {
     public radius: number;
     public lengthToParent: number;
     public structureIdentifierId: string;
-    public brainAreaId: string;
+    public brainAreaIdCcfV25: string;
+    public brainAreaIdCcfV30: string;
 
     public getTracing!: BelongsToGetAssociationMixin<Tracing>;
 }
@@ -52,7 +53,8 @@ export const modelInit = (sequelize: Sequelize) => {
         z: DataTypes.DOUBLE,
         // Outside refs
         swcNodeId: DataTypes.UUID,
-        brainAreaId: DataTypes.UUID
+        brainAreaIdCcfV25: DataTypes.UUID,
+        brainAreaIdCcfV30: DataTypes.UUID
     }, {
         tableName: "TracingNode",
         timestamps: false,
@@ -63,5 +65,6 @@ export const modelInit = (sequelize: Sequelize) => {
 export const modelAssociate = () => {
     TracingNode.belongsTo(Tracing, {foreignKey: "tracingId"});
     TracingNode.belongsTo(StructureIdentifier, {foreignKey: "structureIdentifierId"});
-    TracingNode.belongsTo(BrainArea, {foreignKey: "brainAreaId"});
+    TracingNode.belongsTo(BrainArea, {foreignKey: "brainAreaIdCcfV25", as: "brainAreaCcfV25"});
+    TracingNode.belongsTo(BrainArea, {foreignKey: "brainAreaIdCcfV30", as: "brainAreaCcfV30"});
 };

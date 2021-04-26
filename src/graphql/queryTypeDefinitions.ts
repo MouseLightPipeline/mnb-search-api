@@ -22,7 +22,7 @@ type BrainArea {
     structureIdPath: String
     safeName: String
     acronym: String
-    aliases: [String]
+    aliasList: [String]
     atlasId: Int
     graphId: Int
     graphOrder: Int
@@ -82,22 +82,11 @@ type Node {
     radius: Float
     parentNumber: Int
     lengthToParent: Float
-    brainArea: BrainArea
-    brainAreaId: String
+    brainAreaIdCcfV25: String
+    brainAreaIdCcfV30: String
     structureIdentifier: StructureIdentifier
     structureIdentifierId: String
     structureIdValue: Int
-}
-
-type BrainCompartmentContent {
-    id: String
-    brainArea: BrainArea
-    tracing: Tracing
-    nodeCount: Int
-    somaCount: Int
-    pathCount: Int
-    branchCount: Int
-    endCount: Int
 }
 
 type QueryOutput {

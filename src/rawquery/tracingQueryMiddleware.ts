@@ -53,7 +53,8 @@ async function loadCacheSubset(offset: number, limit: number, totalCount: number
             radius: n.radius,
             parentNumber: n.parentNumber,
             sampleNumber: n.sampleNumber,
-            brainAreaId: n.brainAreaId,
+            brainAreaIdCcfV25: n.brainAreaIdCcfV25,
+            brainAreaIdCcfV30: n.brainAreaIdCcfV30,
             structureIdentifierId: n.structureIdentifierId
         }));
 
