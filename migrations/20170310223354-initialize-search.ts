@@ -1,10 +1,10 @@
 const TracingTable = "Tracing";
 const TracingNodeTable = "TracingNode";
-const NeuronTable = "Neuron";
-const SearchContentTable = "SearchContent";
 const BrainAreaTable = "BrainArea";
+const NeuronTable = "Neuron";
 const StructureIdentifierTable = "StructureIdentifier";
 const TracingStructureTable = "TracingStructure";
+const SearchContentTable = "SearchContent";
 
 export = {
     up: async (queryInterface, Sequelize) => {
