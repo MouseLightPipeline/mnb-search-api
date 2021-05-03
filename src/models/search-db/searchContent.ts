@@ -1,7 +1,7 @@
 import {DataTypes, BelongsToGetAssociationMixin} from "sequelize";
 
 import {ConsensusStatus, Neuron, SearchScope} from "./neuron";
-import {BaseModel} from "../baseModel";
+import {BaseModel} from "./baseModel";
 import {TracingStructure} from "./tracingStructure";
 import {Tracing} from "./tracing";
 import {BrainArea} from "./brainArea";

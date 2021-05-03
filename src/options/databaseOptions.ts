@@ -4,7 +4,7 @@ export const Databases = {
     search: {
         database: "search_production",
         username: "postgres",
-        host: "search-db",
+        host: "search-db-db",
         user: "postgres",
         password: "pgsecret",
         port: 5432,

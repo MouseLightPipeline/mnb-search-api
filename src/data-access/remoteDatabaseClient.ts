@@ -2,10 +2,10 @@ import * as path from "path";
 import * as fs from "fs";
 import {Sequelize, Options, Op} from "sequelize";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
-import {Neuron} from "../models/search/neuron";
-import {BrainArea} from "../models/search/brainArea";
+import {Neuron} from "../models/search-db/neuron";
+import {BrainArea} from "../models/search-db/brainArea";
 
-const debug = require("debug")("mnb:search-api:storage-manager");
+const debug = require("debug")("mnb:search-db-api:storage-manager");
 
 export class RemoteDatabaseClient {
     public static async Start(name: string, options: Options): Promise<RemoteDatabaseClient> {

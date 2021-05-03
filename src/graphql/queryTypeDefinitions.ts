@@ -1,6 +1,19 @@
 export const QueryTypeDefinitions = `
 scalar Date
 
+enum CcfVersion {
+    CCFV25
+    CCFV30
+}
+
+enum PredicateType {
+    UNKNOWN
+    ANATOMICAL = 1,
+    CUSTOM = 2,
+    ID = 3,
+    MIXED = 4
+}
+
 type SystemSettings {
     apiVersion: String
     apiRelease: Int
@@ -98,10 +111,11 @@ type QueryOutput {
 }
 
 type SearchOutput {
-    neurons: [Neuron]
-    totalCount: Int
-    queryTime: Int
     nonce: String
+    ccfVersion: CcfVersion!
+    queryTime: Int
+    totalCount: Int
+    neurons: [Neuron]
     error: Error
 }
 
@@ -133,7 +147,7 @@ input FilterInput {
 }
 
 input Predicate {
-    predicateType: Int
+    predicateType: PredicateType!
     tracingIdsOrDOIs: [String!]
     tracingIdsOrDOIsExactMatch: Boolean
     brainAreaIds: [String!]
@@ -148,8 +162,9 @@ input Predicate {
 }
 
 input SearchContext {
-    scope: Int
     nonce: String
+    scope: Int
+    ccfVersion: CcfVersion!
     predicates: [Predicate!]
 }
 
@@ -188,7 +203,7 @@ type Query {
     structureIdentifiers: [StructureIdentifier!]!
     tracingStructures: [TracingStructure!]!
 
-    queryData(filters: [FilterInput!]): QueryOutput
+    queryData(filters: [FilterInput!]): QueryOutput @deprecated(reason: "migrate to searchNeurons() query")
     searchNeurons(context: SearchContext): SearchOutput
     
     """Provides all tomography metadata."""

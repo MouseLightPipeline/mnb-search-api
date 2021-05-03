@@ -1,6 +1,6 @@
 import {BelongsToGetAssociationMixin, DataTypes, HasManyGetAssociationsMixin, Sequelize} from "sequelize";
 
-import {BaseModel} from "../baseModel";
+import {BaseModel} from "./baseModel";
 import {TracingNode} from "./tracingNode";
 import {TracingStructure} from "./tracingStructure";
 import {Neuron} from "./neuron";

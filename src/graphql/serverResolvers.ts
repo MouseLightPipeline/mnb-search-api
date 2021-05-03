@@ -1,17 +1,18 @@
 import {GraphQLScalarType} from "graphql";
 import {Kind} from "graphql/language";
 import {GraphQLServerContext, IQueryDataPage} from "./serverContext";
-import {IQueryOperator, operators} from "../models/queryOperator";
+import {IQueryOperator, operators} from "../models/query/queryOperator";
 import {ReleaseLevel, ServiceOptions} from "../options/serviceOptions";
-import {BrainArea} from "../models/search/brainArea";
-import {StructureIdentifier} from "../models/search/structureIdentifier";
-import {TracingStructure} from "../models/search/tracingStructure";
-import {Neuron, SearchScope} from "../models/search/neuron";
-import {Sample} from "../models/search/sample";
-import {contextFromFilters, IFilterInput, ISearchContextInput, SearchContext} from "../models/searchContext";
+import {BrainArea} from "../models/search-db/brainArea";
+import {StructureIdentifier} from "../models/search-db/structureIdentifier";
+import {TracingStructure} from "../models/search-db/tracingStructure";
+import {Neuron, SearchScope} from "../models/search-db/neuron";
+import {Sample} from "../models/search-db/sample";
+import {ISearchContextInput, SearchContext} from "../models/query/searchContext";
 import {staticApiClient} from "../data-access/staticApiService";
+import {IFilterInput, QueryPredicate} from "../models/query/queryPredicate";
 
-const debug = require("debug")("mnb:search-api:resolvers");
+const debug = require("debug")("mnb:search-db-api:resolvers");
 
 type QueryDataArguments = {
     filters: IFilterInput[];
@@ -43,7 +44,10 @@ export const queryResolvers = {
         },
         queryData(_, args: QueryDataArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
             try {
-                return context.getNeuronsWithPredicates(new SearchContext(contextFromFilters(args.filters || [])));
+                const nonce = args.filters.length > 0 ? args.filters[0].nonce : "";
+                const predicates = QueryPredicate.predicatesFromFilters(args.filters);
+
+                return context.getNeuronsWithPredicates(SearchContext.fromFilters(nonce, predicates));
             } catch (err) {
                 debug(err);
             }

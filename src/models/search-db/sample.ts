@@ -5,7 +5,7 @@ import {
     Sequelize
 } from "sequelize";
 
-import {    BaseModel} from "../baseModel";
+import {    BaseModel} from "./baseModel";
 import {MouseStrain} from "./mouseStrain";
 
 

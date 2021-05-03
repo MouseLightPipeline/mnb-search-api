@@ -1,8 +1,8 @@
 import {Sequelize, DataTypes, BelongsToGetAssociationMixin, HasManyGetAssociationsMixin} from "sequelize";
 
-const debug = require("debug")("mnb:search-api:neuron-model");
+const debug = require("debug")("mnb:search-db-api:neuron-model");
 
-import {BaseModel} from "../baseModel";
+import {BaseModel} from "./baseModel";
 import {BrainArea} from "./brainArea";
 import {Tracing} from "./tracing";
 import {Sample} from "./sample";

@@ -1,15 +1,17 @@
 import * as _ from "lodash";
-import {Op, FindOptions} from "sequelize";
+import {Op} from "sequelize";
 
-import {IPredicate, SearchContext, PredicateType} from "../models/searchContext";
-import {operatorIdValueMap} from "../models/queryOperator";
-import {BrainArea} from "../models/search/brainArea";
-import {TracingStructure} from "../models/search/tracingStructure";
-import {StructureIdentifier} from "../models/search/structureIdentifier";
-import {Neuron, SearchScope} from "../models/search/neuron";
+import {CcfVersion, SearchContext} from "../models/query/searchContext";
+import {BrainArea} from "../models/search-db/brainArea";
+import {TracingStructure} from "../models/search-db/tracingStructure";
+import {StructureIdentifier} from "../models/search-db/structureIdentifier";
+import {Neuron} from "../models/search-db/neuron";
 import {MetricsStorageManager} from "../data-access/metricsStorageManager";
-import {Sample} from "../models/search/sample";
-import {CcfV25SearchContent} from "../models/search/ccfV25SearchContent";
+import {Sample} from "../models/search-db/sample";
+import {CcfV25SearchContent} from "../models/search-db/ccfV25SearchContent";
+import {PredicateType} from "../models/query/queryPredicate";
+import {SearchContentBase} from "../models/search-db/searchContent";
+import {CcfV30SearchContent} from "../models/search-db/ccfV30SearchContent";
 
 const debug = require("debug")("mnb:search-api:context");
 
@@ -78,8 +80,8 @@ export class GraphQLServerContext {
             return {neurons: [], queryTime: -1, totalCount: 0, nonce: context.Nonce, error: err};
         }
     }
-
-    private queryFromFilter(filter: IPredicate, searchScope: SearchScope): FindOptions {
+/*
+    private queryFromFilter(filter: IQueryPredicate, searchScope: SearchScope): FindOptions {
         const query: FindOptions = {};
 
         switch (filter.predicateType) {
@@ -240,20 +242,24 @@ export class GraphQLServerContext {
 
         return query;
     }
-
+*/
     private async performNeuronsFilterQuery(context: SearchContext): Promise<Neuron[]> {
         const start = Date.now();
 
-        const queries = context.Predicates.map((filter) => {
-            return this.queryFromFilter(filter, context.Scope);
+        const queries = context.Predicates.map((predicate) => {
+            return predicate.createFindOptions(context.Scope);
         });
 
-        const contentPromises: Promise<CcfV25SearchContent[]>[] = queries.map(async (query) => {
-            return CcfV25SearchContent.findAll(query);
+        const contentPromises: Promise<SearchContentBase[]>[] = queries.map(async (query) => {
+            if (context.CcfVersion === CcfVersion.Ccf25) {
+                return CcfV25SearchContent.findAll(query);
+            } else {
+                return CcfV30SearchContent.findAll(query);
+            }
         });
 
         // An array (one for each filter entry) of an array of compartments (all returned for each filter).
-        const contents: CcfV25SearchContent[][] = await Promise.all(contentPromises);
+        const contents: SearchContentBase[][] = await Promise.all(contentPromises);
 
         // Not interested in individual compartment results.  Just want unique tracings mapped back to neurons for
         // grouping.  Need to restructure by neurons before applying composition.
@@ -305,10 +311,11 @@ export class GraphQLServerContext {
         return false;
     }
 }
-
+/*
 function createOperator(operator: symbol, amount: number) {
     let obj = {};
     obj[operator] = amount;
 
     return obj;
 }
+*/

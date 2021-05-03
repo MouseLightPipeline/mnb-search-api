@@ -1,9 +1,9 @@
 import {Sequelize, DataTypes, HasManyGetAssociationsMixin, Op} from "sequelize";
 
-const debug = require("debug")("mnb:search-api:compartment-model");
+const debug = require("debug")("mnb:search-db-api:compartment-model");
 
 import {sampleApiClient} from "../../graphql/services/sampleApiService";
-import {BaseModel} from "../baseModel";
+import {BaseModel} from "./baseModel";
 import {Neuron} from "./neuron";
 
 // As defined by Allen Atlas

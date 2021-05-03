@@ -1,34 +1,31 @@
 import {Sequelize, DataTypes, HasManyGetAssociationsMixin} from "sequelize";
 
-import {BaseModel} from "../baseModel";
-import {Tracing} from "./tracing";
+import {BaseModel} from "./baseModel";
+import {Sample} from "./sample";
 
-export class TracingStructure extends BaseModel {
-    public id: string;
+export class MouseStrain extends BaseModel {
     public name: string;
-    public value: number;
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
 
-    public getTracings!: HasManyGetAssociationsMixin<Tracing>;
+    public getSamples!: HasManyGetAssociationsMixin<Sample>;
 }
 
 export const modelInit = (sequelize: Sequelize) => {
-    TracingStructure.init( {
+    MouseStrain.init({
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4
         },
-        name: DataTypes.TEXT,
-        value: DataTypes.INTEGER
+        name: DataTypes.TEXT
     }, {
-        tableName: "TracingStructure",
+        tableName: "MouseStrain",
         timestamps: true,
         sequelize
     });
 };
 
 export const modelAssociate = () => {
-    TracingStructure.hasMany(Tracing, {foreignKey: "tracingStructureId"});
+    MouseStrain.hasMany(Sample, {foreignKey: "mouseStrainId"});
 };

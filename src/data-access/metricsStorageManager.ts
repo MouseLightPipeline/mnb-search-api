@@ -1,9 +1,9 @@
 import {FieldType, InfluxDB} from "influx";
 
-const debug = require("debug")("mnb:search-api:metrics");
+const debug = require("debug")("mnb:search-db-api:metrics");
 
 import {MetricsOptions} from "../options/databaseOptions";
-import {SearchContext} from "../models/searchContext";
+import {SearchContext} from "../models/query/searchContext";
 
 const reattemptConnectDelay = 10;
 
@@ -24,7 +24,7 @@ export class MetricsStorageManager {
                             user: "UNAUTHENTICATED",
                             search_scope: context.Scope.toFixed(0),
                             predicate_count: `${context.Predicates.length}`,
-                            predicate_type: `${context.PredicateType}`
+                            ccf_version: `${context.CcfVersion}`
                         },
                         fields: {
                             queryObject: JSON.stringify(context),
@@ -78,7 +78,8 @@ async function establishConnection(): Promise<InfluxDB> {
                     "user",
                     "search_scope",
                     "predicate_count",
-                    "predicate_type"
+                    "predicate_type",
+                    "ccf_version"
                 ]
             }
         ]

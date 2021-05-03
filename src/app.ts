@@ -2,7 +2,7 @@ import * as express from "express";
 import * as bodyParser from "body-parser";
 import {gql} from "apollo-server-express";
 
-const debug = require("debug")("mnb:search-api:server");
+const debug = require("debug")("mnb:search-db-api:server");
 
 import {ReleaseLevel, ServiceOptions} from "./options/serviceOptions";
 
