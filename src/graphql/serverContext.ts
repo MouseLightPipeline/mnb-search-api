@@ -80,7 +80,7 @@ export class GraphQLServerContext {
     }
 
     private queryFromFilter(filter: IPredicate, searchScope: SearchScope): FindOptions {
-        const query: FindOptions= {};
+        const query: FindOptions = {};
 
         switch (filter.predicateType) {
             case PredicateType.AnatomicalRegion:
@@ -91,9 +91,16 @@ export class GraphQLServerContext {
                     query.where["tracingStructureId"] = filter.tracingStructureIds[0];
                 }
 
-                if (filter.brainAreaIds.length > 0) {
+                const wholeBrainId = BrainArea.wholeBrainId();
+
+                // Asking for "Whole Brain" should not eliminate nodes (particularly soma) that are outside of the ontology
+                // atlas.  It should be interpreted as an "all" request.  This also helps performance in that there isn't
+                // a where statement with every structure id.
+                const applicableCompartments = filter.brainAreaIds.filter(id => id != wholeBrainId);
+
+                if (applicableCompartments.length > 0) {
                     // Find all brain areas that are these or children of in terms of structure path.
-                    const comprehensiveBrainAreas = filter.brainAreaIds.map(id => BrainArea.getComprehensiveBrainArea(id)).reduce((prev, curr) => {
+                    const comprehensiveBrainAreas = applicableCompartments.map(id => BrainArea.getComprehensiveBrainArea(id)).reduce((prev, curr) => {
                         return prev.concat(curr);
                     }, []);
 

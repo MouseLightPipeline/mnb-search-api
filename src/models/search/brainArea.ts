@@ -6,6 +6,9 @@ import {sampleApiClient} from "../../graphql/services/sampleApiService";
 import {BaseModel} from "../baseModel";
 import {Neuron} from "./neuron";
 
+// As defined by Allen Atlas
+const WHOLE_BRAIN_STRUCTURE_ID = 997;
+
 export class BrainArea extends BaseModel {
     public structureId: number;
     public depth: number;
@@ -34,8 +37,14 @@ export class BrainArea extends BaseModel {
 
     private static _brainAreaCache = new Map<string, BrainArea>();
 
+    private static _wholeBrainId: string;
+
     public static getOne(id: string) {
         return this._brainAreaCache.get(id);
+    }
+
+    public static wholeBrainId(): string {
+        return this._wholeBrainId;
     }
 
     public static getComprehensiveBrainArea(id: string): string[] {
@@ -56,8 +65,13 @@ export class BrainArea extends BaseModel {
                 attributes: ["id", "structureIdPath"],
                 where: {structureIdPath: {[Op.like]: b.structureIdPath + "%"}}
             });
+
             this._comprehensiveBrainAreaLookup.set(b.id, result.map(r => r.id));
         }
+
+        const wholeBrain = await BrainArea.findOne({where: {structureId: WHOLE_BRAIN_STRUCTURE_ID}});
+
+        this._wholeBrainId = wholeBrain.id;
     }
 
     public static async syncBrainAreas(): Promise<void> {
