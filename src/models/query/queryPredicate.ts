@@ -107,7 +107,7 @@ export class QueryPredicate implements IQueryPredicate {
                 findOptions.where = {searchScope: {[Op.gte]: scope}};
 
                 // Zero means any, two is explicitly both types - either way, do not need to filter on structure id
-                if (this.tracingStructureIds.length === 1) {
+                if (this.tracingStructureIds?.length === 1) {
                     findOptions.where["tracingStructureId"] = this.tracingStructureIds[0];
                 }
 
@@ -116,9 +116,9 @@ export class QueryPredicate implements IQueryPredicate {
                 // Asking for "Whole Brain" should not eliminate nodes (particularly soma) that are outside of the ontology
                 // atlas.  It should be interpreted as an "all" request.  This also helps performance in that there isn't
                 // a where statement with every structure id.
-                const applicableCompartments = this.brainAreaIds.filter(id => id != wholeBrainId);
+                const applicableCompartments = this.brainAreaIds?.filter(id => id != wholeBrainId);
 
-                if (applicableCompartments.length > 0) {
+                if (applicableCompartments?.length > 0) {
                     // Find all brain areas that are these or children of in terms of structure path.
                     const comprehensiveBrainAreas = applicableCompartments.map(id => BrainArea.getComprehensiveBrainArea(id)).reduce((prev, curr) => {
                         return prev.concat(curr);
@@ -221,7 +221,7 @@ export class QueryPredicate implements IQueryPredicate {
             }
 
             if (opCode) {
-                if (this.nodeStructureIds.length > 1) {
+                if (this.nodeStructureIds?.length > 1) {
                     let subQ = this.nodeStructureIds.map(s => {
                         const columnName = StructureIdentifier.countColumnName(s);
 
@@ -241,7 +241,7 @@ export class QueryPredicate implements IQueryPredicate {
                     if (subQ.length > 0) {
                         findOptions.where[Op.or] = subQ;
                     }
-                } else if (this.nodeStructureIds.length > 0) {
+                } else if (this.nodeStructureIds?.length > 0) {
                     const columnName = StructureIdentifier.countColumnName(this.nodeStructureIds[0]);
 
                     if (columnName) {

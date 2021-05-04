@@ -8,7 +8,7 @@ import {StructureIdentifier} from "../models/search-db/structureIdentifier";
 import {TracingStructure} from "../models/search-db/tracingStructure";
 import {Neuron, SearchScope} from "../models/search-db/neuron";
 import {Sample} from "../models/search-db/sample";
-import {ISearchContextInput, SearchContext} from "../models/query/searchContext";
+import {CcfVersion, ISearchContextInput, SearchContext} from "../models/query/searchContext";
 import {staticApiClient} from "../data-access/staticApiService";
 import {IFilterInput, PredicateType, QueryPredicate} from "../models/query/queryPredicate";
 
@@ -101,6 +101,10 @@ export const queryResolvers = {
         ANATOMICAL: PredicateType.AnatomicalRegion,
         CUSTOM: PredicateType.CustomRegion,
         ID: PredicateType.IdOrDoi,
+    },
+    CcfVersion: {
+        CCFV25: CcfVersion.Ccf25,
+        CCFV30: CcfVersion.Ccf30
     }
 };
 
