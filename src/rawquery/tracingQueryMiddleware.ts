@@ -1,12 +1,17 @@
-import {ServiceOptions} from "../options/serviceOptions";
-import {Tracing} from "../models/search/tracing";
-import {TracingNode} from "../models/search/tracingNode";
+import * as path from "path";
 
-const debug = require("debug")("mnb:search-api:raw-query");
+import {ServiceOptions} from "../options/serviceOptions";
+import {Tracing} from "../models/search-db/tracing";
+import {TracingNode} from "../models/search-db/tracingNode";
+import {StaticPool} from "node-worker-threads-pool";
+
+const debug = require("debug")("mnb:search-db-api:raw-query");
 
 const compiledMap = new Map<string, any>();
 
 let cacheReady = false;
+
+let timerStart;
 
 export async function loadTracingCache(performDelay = true) {
     if (performDelay) {
@@ -25,13 +30,38 @@ export async function loadTracingCache(performDelay = true) {
 
     const totalCount = await Tracing.count();
 
-    loadCacheSubset(0, ServiceOptions.tracingLoadLimit, totalCount).then();
-}
+    const pool = new StaticPool({
+        size: 3,
+        shareEnv: true,
+        task: path.join(__dirname, "tracingCacheWorker.js")
+    });
 
+    timerStart = process.hrtime();
+
+    for (let idx = 0; idx < totalCount; idx += ServiceOptions.tracingLoadLimit) {
+        (async () => {
+            const res: any[] = await pool.exec({offset: idx, limit: ServiceOptions.tracingLoadLimit}) as any[];
+
+            res.forEach(r => compiledMap.set(r.id, r));
+
+            if (compiledMap.size == totalCount) {
+                const hrend = process.hrtime(timerStart);
+                debug("tracing cache loaded");
+                debug('execution time (hr): %ds %dms', hrend[0], hrend[1] / 1000000);
+            }
+        })();
+        // debug(res);
+    }
+
+    // loadCacheSubset(0, ServiceOptions.tracingLoadLimit, totalCount).then();
+}
+/*
 async function loadCacheSubset(offset: number, limit: number, totalCount: number) {
     if (offset > totalCount) {
         cacheReady = true;
+        const hrend = process.hrtime(timerStart);
         debug("tracing cache loaded");
+        debug('execution time (hr): %ds %dms', hrend[0], hrend[1] / 1000000)
         return;
     }
 
@@ -65,7 +95,7 @@ async function loadCacheSubset(offset: number, limit: number, totalCount: number
         loadCacheSubset(offset + limit, limit, totalCount).then();
     }, 2500);
 }
-
+*/
 export async function tracingQueryMiddleware(req, res) {
     const ids = req.body.ids;
 

@@ -1,16 +1,17 @@
 import * as path from "path";
 import * as fs from "fs";
+
 import {Sequelize, Options, Op} from "sequelize";
 import {loadTracingCache} from "../rawquery/tracingQueryMiddleware";
 import {Neuron} from "../models/search-db/neuron";
 import {BrainArea} from "../models/search-db/brainArea";
 
-const debug = require("debug")("mnb:search-db-api:storage-manager");
+const debug = require("debug")("mnb:search-api:storage-manager");
 
 export class RemoteDatabaseClient {
-    public static async Start(name: string, options: Options): Promise<RemoteDatabaseClient> {
+    public static async Start(name: string, options: Options, prepareContents: boolean = false): Promise<RemoteDatabaseClient> {
         const client = new RemoteDatabaseClient(options);
-        await client.start(name);
+        await client.start(name, prepareContents);
         return client;
     }
 
@@ -21,10 +22,13 @@ export class RemoteDatabaseClient {
         this._options = options;
     }
 
-    private async start(name: string) {
+    private async start(name: string, prepareContents: boolean) {
         this.createConnection(name, this._options);
         await this.authenticate(name);
-        await RemoteDatabaseClient.prepareSearchContents();
+
+        if (prepareContents) {
+            await RemoteDatabaseClient.prepareSearchContents();
+        }
     }
 
     private createConnection(name: string, options: Options) {

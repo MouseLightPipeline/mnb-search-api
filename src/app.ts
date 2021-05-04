@@ -19,7 +19,7 @@ import {RemoteDatabaseClient} from "./data-access/remoteDatabaseClient";
 start().then().catch((err) => debug(err));
 
 async function start() {
-    await RemoteDatabaseClient.Start("search", SequelizeOptions);
+    await RemoteDatabaseClient.Start("search-db", SequelizeOptions, true);
 
     const app = express();
 
