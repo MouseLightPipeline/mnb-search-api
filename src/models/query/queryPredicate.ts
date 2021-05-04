@@ -8,11 +8,9 @@ import {StructureIdentifier} from "../search-db/structureIdentifier";
 const debug = require("debug")("mnb:search-api:query-predicate");
 
 export enum PredicateType {
-    UnknownPredicateType = -1,
     AnatomicalRegion = 1,
     CustomRegion = 2,
-    IdOrDoi = 3,
-    MixedPredicateType = 4
+    IdOrDoi = 3
 }
 
 export interface ICenterPoint {

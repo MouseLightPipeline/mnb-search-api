@@ -10,7 +10,7 @@ import {Neuron, SearchScope} from "../models/search-db/neuron";
 import {Sample} from "../models/search-db/sample";
 import {ISearchContextInput, SearchContext} from "../models/query/searchContext";
 import {staticApiClient} from "../data-access/staticApiService";
-import {IFilterInput, QueryPredicate} from "../models/query/queryPredicate";
+import {IFilterInput, PredicateType, QueryPredicate} from "../models/query/queryPredicate";
 
 const debug = require("debug")("mnb:search-db-api:resolvers");
 
@@ -47,7 +47,7 @@ export const queryResolvers = {
                 const nonce = args.filters.length > 0 ? args.filters[0].nonce : "";
                 const predicates = QueryPredicate.predicatesFromFilters(args.filters);
 
-                return context.getNeuronsWithPredicates(SearchContext.fromFilters(nonce, predicates));
+                return context.getNeuronsWithPredicates(SearchContext.fromPredicates(nonce, predicates));
             } catch (err) {
                 debug(err);
             }
@@ -95,8 +95,13 @@ export const queryResolvers = {
                 return parseInt(ast.value, 10); // ast value is always in string format
             }
             return null;
-        },
-    })
+        }
+    }),
+    PredicateType: {
+        ANATOMICAL: PredicateType.AnatomicalRegion,
+        CUSTOM: PredicateType.CustomRegion,
+        ID: PredicateType.IdOrDoi,
+    }
 };
 
 export const mutationResolvers = {

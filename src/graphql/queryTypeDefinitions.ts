@@ -7,11 +7,9 @@ enum CcfVersion {
 }
 
 enum PredicateType {
-    UNKNOWN
-    ANATOMICAL = 1,
-    CUSTOM = 2,
-    ID = 3,
-    MIXED = 4
+    ANATOMICAL
+    CUSTOM
+    ID
 }
 
 type SystemSettings {

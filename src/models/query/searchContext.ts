@@ -2,7 +2,7 @@ import * as uuid from "uuid"
 
 import {SearchScope} from "../search-db/neuron";
 
-import {IQueryPredicate, QueryPredicate} from "./queryPredicate";
+import {IPredicateAttributes, IQueryPredicate, QueryPredicate} from "./queryPredicate";
 
 export enum CcfVersion {
     Ccf25,
@@ -13,11 +13,11 @@ export interface ISearchContextInput {
     nonce: string;
     scope: SearchScope;
     ccfVersion: CcfVersion;
-    predicates: IQueryPredicate[];
+    predicates: IPredicateAttributes[];
 }
 
 export class SearchContext {
-    public static fromFilters(nonce: string = "", predicates: IQueryPredicate[] = []): SearchContext {
+    public static fromPredicates(nonce: string = "", predicates: IQueryPredicate[] = []): SearchContext {
         return new SearchContext({
             nonce,
             scope: SearchScope.Public,
@@ -41,7 +41,7 @@ export class SearchContext {
         this._nonce = input.nonce;
         this._scope = input.scope;
         this._ccfVersion = input.ccfVersion;
-        this._predicates = (!input.predicates || input.predicates.length === 0) ? [QueryPredicate.createDefault()] : input.predicates;
+        this._predicates = (!input.predicates || input.predicates.length === 0) ? [QueryPredicate.createDefault()] : input.predicates.map(p => new QueryPredicate(p));
     }
 
     private readonly _scope: SearchScope;

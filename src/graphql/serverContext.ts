@@ -16,10 +16,11 @@ import {CcfV30SearchContent} from "../models/search-db/ccfV30SearchContent";
 const debug = require("debug")("mnb:search-api:context");
 
 export interface IQueryDataPage {
-    neurons: Neuron[];
-    totalCount: number;
-    queryTime: number;
     nonce: string;
+    ccfVersion: CcfVersion;
+    queryTime: number;
+    totalCount: number;
+    neurons: Neuron[];
     error: Error;
 }
 
@@ -72,12 +73,12 @@ export class GraphQLServerContext {
 
             neurons = neurons.sort((b, a) => a.idString.localeCompare(b.idString));
 
-            return {neurons, queryTime: duration, totalCount, nonce: context.Nonce, error: null};
+            return {nonce: context.Nonce, ccfVersion: context.CcfVersion, queryTime: duration, totalCount, neurons, error: null};
 
         } catch (err) {
             debug(err);
 
-            return {neurons: [], queryTime: -1, totalCount: 0, nonce: context.Nonce, error: err};
+            return {nonce: context.Nonce, ccfVersion: context.CcfVersion, queryTime: -1, totalCount: 0, neurons: [], error: err};
         }
     }
 /*
