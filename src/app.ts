@@ -33,10 +33,13 @@ async function start() {
 
     let resolvers = queryResolvers;
 
+    let introspection = false;
+
     if (ServiceOptions.release === ReleaseLevel.Internal) {
         debug(`release level is internal`);
         typeDefinitions += MutateTypeDefinitions + `schema {\n\tquery: Query\n\tmutation: Mutation\n}`;
         resolvers = Object.assign(resolvers, mutationResolvers);
+        introspection = true;
     } else {
         debug(`release level is public`);
         typeDefinitions += `schema {\n\tquery: Query\n}`;
@@ -45,8 +48,8 @@ async function start() {
     const server = new ApolloServer({
         typeDefs: gql`${typeDefinitions}`,
         resolvers,
-        introspection: true,
-        playground: true,
+        introspection,
+        playground: introspection,
         context: () => new GraphQLServerContext()
     });
 
