@@ -18,7 +18,7 @@ export class BrainArea extends BaseModel {
     public safeName: string;
     public acronym: string;
     public atlasId: number;
-    public aliases: string[];
+    public aliases: string;
     public graphId: number;
     public graphOrder: number;
     public hemisphereId: number;
