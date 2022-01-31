@@ -37,7 +37,7 @@ tasks:
       - cp docker-entry.sh dist/
       - cp migrate.sh dist/
       - cp -r migrations dist/
-  dbuild:
+  docker-build:
     cmds:
       - task: build
       - docker build --platform linux/amd64 --tag {{.IMAGEWITHVERSION}} .
@@ -46,7 +46,7 @@ tasks:
       - docker tag {{.IMAGEWITHREVERSION}} {{.IMAGELATEST}}
   release:
     cmds:
-      - task: dbuild
+      - task: docker-build
       - docker push {{.IMAGEWITHVERSION}}
       - docker push {{.IMAGEWITHMINORVERSION}}
       - docker push {{.IMAGEWITHREVERSION}}

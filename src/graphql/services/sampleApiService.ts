@@ -1,6 +1,7 @@
 import {HttpLink} from "apollo-link-http";
 import {ApolloClient} from "apollo-client";
 import {InMemoryCache} from "apollo-cache-inmemory";
+import {fetch} from "isomorphic-fetch";
 
 const gql = require("graphql-tag");
 
@@ -17,7 +18,7 @@ export class SampleApiClient {
         debug(`creating apollo client for SWC service ${url}`);
 
         this._client = new ApolloClient({
-            link: new HttpLink({uri: url}),
+            link: new HttpLink({uri: url, fetch: fetch}),
             cache: new InMemoryCache()
         });
     }

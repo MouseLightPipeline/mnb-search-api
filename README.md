@@ -21,4 +21,5 @@ When run from the Docker container, migrations are automatically applied at star
 ### Build
 
 Building requires the Typescript compiler and a Node.js package manager (yarn/npm).  Automation of the `build->docker image build->
-docker image release` process is through a [Taskfile](https://taskfile.dev).
+docker image release` process is through a [Taskfile](https://taskfile.dev).  The tasks
+also require `jq` to parse `package.json` for version information.
