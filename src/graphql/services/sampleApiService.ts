@@ -4,8 +4,6 @@ import {InMemoryCache} from "apollo-cache-inmemory";
 
 const gql = require("graphql-tag");
 
-require("isomorphic-fetch");
-
 const debug = require("debug")("mnb:sample-api:swc-client");
 
 import {SampleServiceOptions} from "../../options/coreServicesOptions";

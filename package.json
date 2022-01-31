@@ -1,21 +1,19 @@
 {
   "name": "mnb-search-api",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "main": "dist/app.js",
   "repository": "https://github.com/MouseLightPipeline/mnb-search-api.git",
   "author": "Patrick Edson <pedson@leapscientific.com>",
   "license": "SEE LICENSE IN LICENSE",
-  "dockerRepository": "mouselightdatabrowser",
-  "dockerImageName": "search-api",
   "scripts": {
     "debug": "node --trace-warnings --max-old-space-size=8192 --optimize-for-size src/app.js",
     "migrate": "tsc && ./migrate.sh",
-    "clean": "tsc && gulp clean",
-    "compile": "tsc && gulp compile",
-    "build": "tsc && gulp build",
-    "docker-build": "tsc && gulp docker-build",
-    "docker-release": "tsc && gulp release"
+    "clean": "task clean",
+    "compile": "task compile",
+    "build": "task build",
+    "docker-build": "task dbuild",
+    "release": "task release"
   },
   "dependencies": {
     "apollo-cache-inmemory": "^1.6.6",
@@ -25,31 +23,25 @@
     "dataloader": "^1.4.0",
     "debug": "^4.3.3",
     "express": "^4.17.2",
-    "glob-parent": "^5.1.2",
     "graphql": "^14.7.0",
     "influx": "^5.9.2",
-    "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.21",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^3.2.0",
     "node-worker-threads-pool": "^1.5.1",
     "pg": "^7.18.2",
     "sanitize-filename": "^1.6.3",
     "sequelize": "^5.22.5",
-    "uuid": "^3.4.0"
+    "uuid": "^3.4.0",
+    "whatwg-fetch": "^3.6.2"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.28",
     "@types/express": "^4.17.2",
-    "@types/gulp": "^4.0.6",
     "@types/lodash": "^4.14.145",
     "@types/node": "^12.12.6",
     "@types/sanitize-filename": "^1.6.3",
     "@types/uuid": "^3.4.6",
     "@types/validator": "^10.11.3",
-    "del": "^6.0.0",
-    "gulp": "^4.0.2",
-    "gulp-shell": "^0.8.0",
-    "merge-stream": "^2.0.0",
     "typescript": "^4.5.5"
   }
 }
