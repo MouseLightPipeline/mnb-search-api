@@ -6,7 +6,6 @@
     "sourceMap": false
   },
   "exclude": [
-    "migrations",
-    "gulpfile.ts"
+    "migrations"
   ]
 }

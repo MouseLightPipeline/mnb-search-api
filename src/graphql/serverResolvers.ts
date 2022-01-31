@@ -108,31 +108,6 @@ export const queryResolvers = {
     }
 };
 
-export const mutationResolvers = {
-    Mutation: {
-        syncBrainAreas(_, __, context: GraphQLServerContext): Promise<void> {
-            if (ServiceOptions.release !== ReleaseLevel.Internal) {
-                return Promise.resolve();
-            }
-
-            return context.syncBrainAreas();
-        }, updateSample(_, {id}, context: GraphQLServerContext): Promise<boolean> {
-            if (ServiceOptions.release !== ReleaseLevel.Internal) {
-                return Promise.resolve(false);
-            }
-
-            return context.updateSample(id);
-        },
-        updateNeuron(_, {id}, context: GraphQLServerContext): Promise<boolean> {
-            if (ServiceOptions.release !== ReleaseLevel.Internal) {
-                return Promise.resolve(false);
-            }
-
-            return context.updateNeuron(id);
-        }
-    }
-};
-
 let systemMessage: String = "";
 
 interface ISystemSettings {
