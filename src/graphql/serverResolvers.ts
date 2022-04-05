@@ -42,6 +42,9 @@ export const queryResolvers = {
         samples(_, __, context: GraphQLServerContext): Promise<Sample[]> {
             return context.getSamples();
         },
+        neurons(_, __, context: GraphQLServerContext): Promise<Neuron[]> {
+            return context.getNeurons();
+        },
         queryData(_, args: QueryDataArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
             try {
                 const nonce = args.filters.length > 0 ? args.filters[0].nonce : "";

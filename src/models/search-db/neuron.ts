@@ -50,6 +50,10 @@ export type NeuronAttributes = {
     consensus: ConsensusStatus;
     searchScope: SearchScope;
     brainAreaId: string;
+    janeliaX: number;
+    janeliaY: number;
+    janeliaZ: number;
+    swcName: string;
 }
 
 export class Neuron extends BaseModel {
@@ -62,6 +66,10 @@ export class Neuron extends BaseModel {
     public doi: string;
     public consensus: ConsensusStatus;
     public searchScope: SearchScope;
+    public janeliaX: number;
+    public janeliaY: number;
+    public janeliaZ: number;
+    public swcName: string;
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
 
@@ -148,7 +156,11 @@ export const modelInit = (sequelize: Sequelize) => {
         z: DataTypes.DOUBLE,
         searchScope: DataTypes.INTEGER,
         consensus: DataTypes.INTEGER,
-        doi: DataTypes.TEXT
+        doi: DataTypes.TEXT,
+        janeliaX: DataTypes.DOUBLE,
+        janeliaY: DataTypes.DOUBLE,
+        janeliaZ: DataTypes.DOUBLE,
+        swcName: DataTypes.TEXT
     }, {
         tableName: "Neuron",
         timestamps: true,

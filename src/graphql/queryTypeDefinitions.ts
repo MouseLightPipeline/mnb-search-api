@@ -66,6 +66,14 @@ type Neuron {
     idString: String
     tag: String
     keywords: String
+    x: Float
+    y: Float
+    z: Float
+    doi: String
+    janeliaX: Float
+    janeliaY: Float
+    janeliaZ: Float
+    swcName: String
     brainArea: BrainArea
     sample: Sample
     consensus: Int
@@ -198,6 +206,7 @@ type Query {
     queryOperators: [QueryOperator!]!
     brainAreas: [BrainArea!]!
     samples: [Sample!]!
+    neurons: [Neuron!]!
     structureIdentifiers: [StructureIdentifier!]!
     tracingStructures: [TracingStructure!]!
 

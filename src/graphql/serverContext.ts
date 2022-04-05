@@ -57,6 +57,10 @@ export class GraphQLServerContext {
         return Sample.findByPk(id);
     }
 
+    public async getNeurons(): Promise<Neuron[]> {
+        return Neuron.findAll();
+    }
+
     public async syncBrainAreas(): Promise<void> {
         return BrainArea.syncBrainAreas();
     }
