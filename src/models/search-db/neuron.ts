@@ -53,7 +53,7 @@ export type NeuronAttributes = {
     janeliaX: number;
     janeliaY: number;
     janeliaZ: number;
-    swcName: string;
+    swcNames: string;
 }
 
 export class Neuron extends BaseModel {
