@@ -73,7 +73,7 @@ type Neuron {
     janeliaX: Float
     janeliaY: Float
     janeliaZ: Float
-    swcName: String
+    swcFileNames: [String!]!
     brainArea: BrainArea
     sample: Sample
     consensus: Int

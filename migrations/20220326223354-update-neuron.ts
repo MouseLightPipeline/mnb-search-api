@@ -10,7 +10,7 @@ export = {
         await queryInterface.addColumn(NeuronTable, JaneliaXColumn, Sequelize.DOUBLE);
         await queryInterface.addColumn(NeuronTable, JaneliaYColumn, Sequelize.DOUBLE);
         await queryInterface.addColumn(NeuronTable, JaneliaZColumn, Sequelize.DOUBLE);
-        await queryInterface.addColumn(NeuronTable, SwcNameColumn, Sequelize.DOUBLE);
+        await queryInterface.addColumn(NeuronTable, SwcNameColumn, Sequelize.TEXT);
     },
 
     down: async (queryInterface, Sequelize) => {

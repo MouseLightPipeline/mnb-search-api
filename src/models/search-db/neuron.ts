@@ -69,9 +69,11 @@ export class Neuron extends BaseModel {
     public janeliaX: number;
     public janeliaY: number;
     public janeliaZ: number;
-    public swcName: string;
+    public swcNames: string;
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
+
+    public swcFileNames: string[];
 
     public getBrainArea!: BelongsToGetAssociationMixin<BrainArea>;
     public getSample!: BelongsToGetAssociationMixin<Sample>;
@@ -160,7 +162,20 @@ export const modelInit = (sequelize: Sequelize) => {
         janeliaX: DataTypes.DOUBLE,
         janeliaY: DataTypes.DOUBLE,
         janeliaZ: DataTypes.DOUBLE,
-        swcName: DataTypes.TEXT
+        swcNames: DataTypes.TEXT,
+        swcFileNames: {
+            type: DataTypes.VIRTUAL(DataTypes.ARRAY(DataTypes.STRING), ["swcNames"]),
+            get: function (): string[] {
+                return JSON.parse(this.getDataValue("swcNames")) || [];
+            },
+            set: function (value: string[]) {
+                if (value && value.length === 0) {
+                    value = null;
+                }
+
+                this.setDataValue("swcNames", JSON.stringify(value));
+            }
+        }
     }, {
         tableName: "Neuron",
         timestamps: true,
