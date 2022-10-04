@@ -25,11 +25,13 @@ export class SearchContentBase extends BaseModel {
     public neuron?: Neuron;
     public tracing?: Tracing;
     public tracingStructure?: TracingStructure;
+    public manualSomaCompartment?: BrainArea;
 
     public getBrainArea!: BelongsToGetAssociationMixin<BrainArea>;
     public getNeuron!: BelongsToGetAssociationMixin<Neuron>;
     public getTracing!: BelongsToGetAssociationMixin<Tracing>;
     public getTracingStructure!: BelongsToGetAssociationMixin<TracingStructure>;
+    public getManualSomaCompartment!: BelongsToGetAssociationMixin<BrainArea>;
 }
 
 export const SearchContentModelAttributes = {

@@ -69,6 +69,7 @@ type Neuron {
     brainArea: BrainArea
     sample: Sample
     consensus: Int
+    manualSomaCompartment: BrainArea
     tracings: [Tracing]
 }
 
@@ -198,6 +199,7 @@ type Query {
     queryOperators: [QueryOperator!]!
     brainAreas: [BrainArea!]!
     samples: [Sample!]!
+    neurons: [Neuron!]!
     structureIdentifiers: [StructureIdentifier!]!
     tracingStructures: [TracingStructure!]!
 

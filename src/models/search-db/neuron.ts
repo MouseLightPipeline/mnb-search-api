@@ -50,6 +50,7 @@ export type NeuronAttributes = {
     consensus: ConsensusStatus;
     searchScope: SearchScope;
     brainAreaId: string;
+    manualSomaCompartmentId: string;
 }
 
 export class Neuron extends BaseModel {
@@ -68,9 +69,11 @@ export class Neuron extends BaseModel {
     public getBrainArea!: BelongsToGetAssociationMixin<BrainArea>;
     public getSample!: BelongsToGetAssociationMixin<Sample>;
     public getTracings!: HasManyGetAssociationsMixin<Tracing>;
+    public getManualSomaCompartment!: BelongsToGetAssociationMixin<BrainArea>;
 
     public tracings?: Tracing[];
     public brainArea?: BrainArea;
+    public manualSomaCompartment?: BrainArea;
 
     private static _neuronCache: NeuronCache = new Map<string, Neuron>();
 
@@ -159,6 +162,7 @@ export const modelInit = (sequelize: Sequelize) => {
 export const modelAssociate = () => {
     Neuron.belongsTo(Sample, {foreignKey: {name: "sampleId"}});
     Neuron.belongsTo(BrainArea, {foreignKey: {name: "brainAreaId", allowNull: true}, as: "brainArea"});
+    Neuron.belongsTo(BrainArea, {foreignKey: "manualSomaCompartmentId", as: "manualSomaCompartment"});
     Neuron.hasMany(Tracing, {foreignKey: "neuronId", as: "tracings"});
     Neuron.hasMany(CcfV25SearchContent, {foreignKey: "neuronId"});
     Neuron.hasMany(CcfV30SearchContent, {foreignKey: "neuronId"});

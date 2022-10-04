@@ -4,6 +4,7 @@ import {BrainArea} from "./brainArea";
 import {Neuron} from "./neuron";
 import {TracingStructure} from "./tracingStructure";
 import {SearchContentBase, SearchContentModelAttributes} from "./searchContent";
+import {CcfV25SearchContent} from "./ccfV25SearchContent";
 
 export class CcfV30SearchContent extends SearchContentBase {}
 
@@ -20,4 +21,5 @@ export const modelAssociate = () => {
     CcfV30SearchContent.belongsTo(BrainArea, {foreignKey: "brainAreaId", as: "brainArea"});
     CcfV30SearchContent.belongsTo(Neuron, {foreignKey: "neuronId", as: "neuron"});
     CcfV30SearchContent.belongsTo(TracingStructure, {foreignKey: "tracingStructureId", as: "tracingStructure"});
+    CcfV30SearchContent.belongsTo(BrainArea, {foreignKey: "manualSomaCompartmentId", as: "manualSomaCompartment"});
 };

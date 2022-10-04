@@ -61,6 +61,10 @@ export class GraphQLServerContext {
         return BrainArea.syncBrainAreas();
     }
 
+    public async getNeurons(): Promise<Neuron[]> {
+        return Neuron.findAll();
+    }
+
     public async getNeuronsWithPredicates(context: SearchContext): Promise<IQueryDataPage> {
         try {
             const start = Date.now();
