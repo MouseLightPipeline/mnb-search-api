@@ -101,6 +101,10 @@ export class Neuron extends BaseModel {
                     as: "brainArea"
                 },
                 {
+                    model: BrainArea,
+                    as: "manualSomaCompartment"
+                },
+                {
                     model: Tracing,
                     as: "tracings",
                     include: [{
