@@ -13,6 +13,12 @@ export enum PredicateType {
     IdOrDoi = 3
 }
 
+export enum SomaOriginType {
+    Automatic,
+    Manual,
+    Any
+}
+
 export interface ICenterPoint {
     x: number;
     y: number;
@@ -25,6 +31,7 @@ export interface IPredicateAttributes {
     tracingIdsOrDOIsExactMatch: boolean;
     tracingStructureIds: string[];
     nodeStructureIds: string[];
+    somaOrigin?: SomaOriginType;
     operatorId: string;
     amount: number;
     brainAreaIds: string[];
@@ -66,6 +73,7 @@ export class QueryPredicate implements IQueryPredicate {
             tracingIdsOrDOIsExactMatch: false,
             tracingStructureIds: [],
             nodeStructureIds: [],
+            somaOrigin: SomaOriginType.Automatic,
             operatorId: "8905baf3-89bc-4e23-b542-e8d0947991f8",
             amount: 0,
             brainAreaIds: [],
@@ -95,6 +103,7 @@ export class QueryPredicate implements IQueryPredicate {
         this.arbSize = source.arbSize;
         this.tracingStructureIds = source.tracingStructureIds;
         this.nodeStructureIds = source.nodeStructureIds;
+        this.somaOrigin = source.somaOrigin ?? SomaOriginType.Automatic;
         this.operatorId = source.operatorId;
         this.amount = source.amount;
     }
@@ -266,6 +275,7 @@ export class QueryPredicate implements IQueryPredicate {
     tracingIdsOrDOIsExactMatch: boolean;
     tracingStructureIds: string[];
     nodeStructureIds: string[];
+    somaOrigin: SomaOriginType;
     operatorId: string;
     amount: number;
     brainAreaIds: string[];

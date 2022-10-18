@@ -12,6 +12,12 @@ enum PredicateType {
     ID
 }
 
+enum SomaOriginType {
+    AUTOMATIC
+    MANUAL
+    ANY
+}
+
 type SystemSettings {
     apiVersion: String
     apiRelease: Int
@@ -154,6 +160,7 @@ input Predicate {
     arbSize: Float
     tracingStructureIds: [String!]
     nodeStructureIds: [String!]
+    somaOrigin: SomaOriginType
     operatorId: String
     amount: Float
     invert: Boolean

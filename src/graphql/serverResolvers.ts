@@ -47,6 +47,8 @@ export const queryResolvers = {
         },
         queryData(_, args: QueryDataArguments, context: GraphQLServerContext): Promise<IQueryDataPage> {
             try {
+                // Legacy query format that is not aware of CCF versions.  Keeping because there may still
+                // be some older tools other than the default browser frontend that have not been updated.
                 const nonce = args.filters.length > 0 ? args.filters[0].nonce : "";
                 const predicates = QueryPredicate.predicatesFromFilters(args.filters);
 
