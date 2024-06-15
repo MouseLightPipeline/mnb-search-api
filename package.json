@@ -1,6 +1,6 @@
 {
   "name": "mnb-search-api",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "private": true,
   "main": "dist/app.js",
   "repository": "https://github.com/MouseLightPipeline/mnb-search-api.git",

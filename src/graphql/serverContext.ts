@@ -75,7 +75,7 @@ export class GraphQLServerContext {
 
             const totalCount = Neuron.neuronCount(context.Scope);
 
-            neurons = neurons.sort((b, a) => a.idString.localeCompare(b.idString));
+            neurons = neurons.filter(n => n != null).sort((b, a) => a.idString.localeCompare(b.idString));
 
             return {nonce: context.Nonce, ccfVersion: context.CcfVersion, queryTime: duration, totalCount, neurons, error: null};
 
