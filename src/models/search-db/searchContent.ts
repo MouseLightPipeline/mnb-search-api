@@ -26,6 +26,7 @@ export class SearchContentBase extends BaseModel {
     public tracing?: Tracing;
     public tracingStructure?: TracingStructure;
     public manualSomaCompartment?: BrainArea;
+    public legacySomaCompartments?: BrainArea[];
 
     public getBrainArea!: BelongsToGetAssociationMixin<BrainArea>;
     public getNeuron!: BelongsToGetAssociationMixin<Neuron>;
@@ -50,5 +51,20 @@ export const SearchContentModelAttributes = {
     somaCount: DataTypes.INTEGER,
     pathCount: DataTypes.INTEGER,
     branchCount: DataTypes.INTEGER,
-    endCount: DataTypes.INTEGER
+    endCount: DataTypes.INTEGER,
+    legacySomaIds: DataTypes.TEXT,
+    legacySomaCompartments: {
+        type: DataTypes.VIRTUAL(DataTypes.ARRAY, ["legacySomaIds"]),
+        get: function (): string[] {
+            const ids = JSON.parse(this.getDataValue("legacySomaIds")) || [];
+            return ids.map(id => BrainArea.getOne(id));
+        },
+        set: function (value: string[]) {
+            if (value && value.length === 0) {
+                value = null;
+            }
+
+            this.setDataValue("legacySomaIds", JSON.stringify(value));
+        }
+    }
 };

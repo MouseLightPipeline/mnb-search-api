@@ -61,6 +61,10 @@ export class GraphQLServerContext {
         return BrainArea.syncBrainAreas();
     }
 
+    public async getNeuron(id: string): Promise<Neuron> {
+        return Neuron.findByPk(id);
+    }
+
     public async getNeurons(): Promise<Neuron[]> {
         return Neuron.findAll();
     }
@@ -104,6 +108,10 @@ export class GraphQLServerContext {
         // An array (one for each filter entry) of an array of compartments (all returned for each filter).
         const contents: SearchContentBase[][] = await Promise.all(contentPromises);
 
+        contents.forEach((s, idx) => {
+            debug(`${s.length} search content entries for predicate ${idx}`);
+        });
+
         // Not interested in individual compartment results.  Just want unique tracings mapped back to neurons for
         // grouping.  Need to restructure by neurons before applying composition.
         const results: Neuron[][] = contents.map((c, index) => {
@@ -126,6 +134,10 @@ export class GraphQLServerContext {
             });
         });
 
+        results.forEach((s, idx) => {
+            debug(`${s.length} neurons for predicate ${idx}`);
+        });
+
         let neurons = results.reduce((prev, curr, index) => {
             if (index === 0 || context.Predicates[index].composition === FilterComposition.or) {
                 return _.uniqBy(prev.concat(curr), "id");
@@ -136,6 +148,8 @@ export class GraphQLServerContext {
                 return _.uniqBy(_.differenceBy(prev, curr, "id"), "id");
             }
         }, []);
+
+        debug(`${neurons.length} neurons after composition`);
 
         const duration = Date.now() - start;
 

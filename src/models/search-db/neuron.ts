@@ -38,21 +38,6 @@ class NeuronCounts {
     [key: number]: number;
 }
 
-export type NeuronAttributes = {
-    id: string;
-    idString: string;
-    tag: string;
-    keywords: string;
-    x: number;
-    y: number;
-    z: number;
-    doi: string;
-    consensus: ConsensusStatus;
-    searchScope: SearchScope;
-    brainAreaId: string;
-    manualSomaCompartmentId: string;
-}
-
 export class Neuron extends BaseModel {
     public idString: string;
     public tag: string;
@@ -63,6 +48,8 @@ export class Neuron extends BaseModel {
     public doi: string;
     public consensus: ConsensusStatus;
     public searchScope: SearchScope;
+    public legacySomaIds: string;
+    public hortaDeepLink: string;
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
 
@@ -74,6 +61,7 @@ export class Neuron extends BaseModel {
     public tracings?: Tracing[];
     public brainArea?: BrainArea;
     public manualSomaCompartment?: BrainArea;
+    public legacySomaCompartments?: BrainArea[];
 
     private static _neuronCache: NeuronCache = new Map<string, Neuron>();
 
@@ -126,6 +114,10 @@ export class Neuron extends BaseModel {
             }
 
             this._neuronCache.set(n.id, n);
+
+            if (n.idString == "AA1030") {
+                debug(JSON.stringify(n));
+            }
         });
 
         this._neuronCounts[SearchScope.Private] = this._neuronCounts[SearchScope.Team] = neurons.length;
@@ -155,7 +147,23 @@ export const modelInit = (sequelize: Sequelize) => {
         z: DataTypes.DOUBLE,
         searchScope: DataTypes.INTEGER,
         consensus: DataTypes.INTEGER,
-        doi: DataTypes.TEXT
+        doi: DataTypes.TEXT,
+        hortaDeepLink: DataTypes.TEXT,
+        legacySomaIds: DataTypes.TEXT,
+        legacySomaCompartments: {
+            type: DataTypes.VIRTUAL(DataTypes.ARRAY, ["legacySomaIds"]),
+            get: function (): string[] {
+                const ids = JSON.parse(this.getDataValue("legacySomaIds")) || [];
+                return ids.map(id => BrainArea.getOne(id));
+            },
+            set: function (value: string[]) {
+                if (value && value.length === 0) {
+                    value = null;
+                }
+
+                this.setDataValue("legacySomaIds", JSON.stringify(value));
+            }
+        }
     }, {
         tableName: "Neuron",
         timestamps: true,

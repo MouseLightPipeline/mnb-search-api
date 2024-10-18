@@ -42,6 +42,9 @@ export const queryResolvers = {
         samples(_, __, context: GraphQLServerContext): Promise<Sample[]> {
             return context.getSamples();
         },
+        neuron(_, args, context: GraphQLServerContext): Promise<Neuron> {
+            return context.getNeuron(args.id);
+        },
         neurons(_, __, context: GraphQLServerContext): Promise<Neuron[]> {
             return context.getNeurons();
         },
@@ -83,7 +86,8 @@ export const queryResolvers = {
             return neuron.getSample();
         },
         brainArea(neuron: Neuron): BrainArea {
-            return neuron.brainArea;
+            const n = Neuron.getOne(neuron.id);
+            return n.brainArea;
         }
     },
     Date: new GraphQLScalarType({

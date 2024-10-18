@@ -76,6 +76,8 @@ type Neuron {
     sample: Sample
     consensus: Int
     manualSomaCompartment: BrainArea
+    legacySomaCompartments: [BrainArea]
+    hortaDeepLink: String
     tracings: [Tracing]
 }
 
@@ -206,6 +208,7 @@ type Query {
     queryOperators: [QueryOperator!]!
     brainAreas: [BrainArea!]!
     samples: [Sample!]!
+    neuron(id: String): Neuron
     neurons: [Neuron!]!
     structureIdentifiers: [StructureIdentifier!]!
     tracingStructures: [TracingStructure!]!
